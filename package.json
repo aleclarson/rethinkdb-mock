@@ -1,0 +1,11 @@
+{
+  "name": "rethinkdb-mock",
+  "version": "0.0.1",
+  "main": "js/index",
+  "plugins": [
+    "lotus-coffee"
+  ],
+  "dependencies": {
+    "uuid": "^3.1.0"
+  }
+}
