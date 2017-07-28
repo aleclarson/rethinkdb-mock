@@ -1,12 +1,12 @@
 
-Promise = require "Promise"
+assertType = require "assertType"
+sliceArray = require "sliceArray"
 setType = require "setType"
 Either = require "Either"
 isType = require "isType"
 
 Selection = require "./Selection"
 Sequence = require "./Sequence"
-tables = require "./tables"
 Datum = require "./Datum"
 uuid = require "./uuid"
 
@@ -16,62 +16,57 @@ GET_ALL = i++
 INSERT = i++
 DELETE = i++
 
-Table = (tableId, action) ->
+Table = (db, tableId, action) ->
   self = (value) -> Sequence(self)._get value
+  self._db = db
   self._tableId = tableId
-  self._action = action or null
+  self._action = action if action
   return setType self, Table
 
 methods = Table.prototype
 
 methods.get = (id) ->
-  @_action = [GET, id]
-  return Selection this
+  self = Table @_db, @_tableId, [GET, id]
+  return Selection self
 
 methods.getAll = ->
-  @_action = [GET_ALL, arguments]
-  return Sequence this
+  self = Table @_db, @_tableId, [GET_ALL, sliceArray arguments]
+  return Sequence self
 
 methods.insert = (row) ->
-  @_action = [INSERT, row]
-  return Datum this
+  self = Table @_db, @_tableId, [INSERT, row]
+  return Datum self
 
 methods.delete = ->
-  @_action = [DELETE]
-  return Datum this
+  self = Table @_db, @_tableId, [DELETE]
+  return Datum self
 
 do ->
-  keys = ["nth", "getField", "update", "filter", "fold", "pluck", "without", "limit", "orderBy"]
+  keys = "do nth getField offsetsOf update filter orderBy limit slice pluck without fold".split " "
   keys.forEach (key) ->
     methods[key] = ->
-      query = Sequence this
-      @_actions.push query
-      return query[key].apply query, arguments
+      self = Sequence this
+      return self[key].apply self, arguments
 
 methods.run = ->
-  Promise.try =>
-    result = @_run()
-    if @_action
-    then result
-    else result.slice()
+  Promise.resolve().then =>
+    result = @_run {}
+    return result if @_action
+    return result.slice()
 
 methods.then = (onFulfilled) ->
   @run().then onFulfilled
 
-methods._push = (action) ->
-  self = Table @_tableId
-  self._action = action
-  return self
+methods._run = (context) ->
+  context.tableId = @_tableId
 
-methods._run = ->
+  unless table = @_db._tables[@_tableId]
+    throw Error "Table `#{@_tableId}` does not exist"
 
-  unless table = tables.get @_tableId
-    throw Error "Table '#{@_tableId}' does not exist"
-
-  unless @_action
+  unless action = @_action
     return table
 
-  switch @_action[0]
+  switch action[0]
 
     when INSERT
       return insertRow table, action[1]
@@ -110,7 +105,8 @@ deleteRows = (table) ->
   return {deleted: count}
 
 getRow = (table, id) ->
-  table.find (row) -> row.id is id
+  row = table.find (row) -> row.id is id
+  return row or null
 
 getRows = (table, args) ->
   return [] unless args.length

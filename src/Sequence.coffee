@@ -2,15 +2,17 @@
 # TODO: Support `orderBy` function argument
 
 assertType = require "assertType"
+sliceArray = require "sliceArray"
+combine = require "combine"
 setType = require "setType"
 isType = require "isType"
 
 Selection = require "./Selection"
-tables = require "./tables"
 Datum = require "./Datum"
+utils = require "./utils"
+seq = require "./utils/sequence"
 
 i = 1
-DO = i++
 GET = i++
 NTH = i++
 GET_FIELD = i++
@@ -27,8 +29,8 @@ DELETE = i++
 
 Sequence = (query) ->
   self = (value) -> self._get value
+  self._db = query._db
   self._query = query
-  self._action = null
   return setType self, Sequence
 
 methods = Sequence.prototype
@@ -57,7 +59,7 @@ methods.filter = (value, options) ->
   return Sequence this
 
 methods.orderBy = ->
-  @_action = [ORDER_BY, arguments]
+  @_action = [ORDER_BY, sliceArray arguments]
   return Sequence this
 
 methods.limit = (n) ->
@@ -65,15 +67,15 @@ methods.limit = (n) ->
   return Sequence this
 
 methods.slice = ->
-  @_action = [SLICE, arguments]
+  @_action = [SLICE, sliceArray arguments]
   return Sequence this
 
 methods.pluck = ->
-  @_action = [PLUCK, arguments]
+  @_action = [PLUCK, sliceArray arguments]
   return Sequence this
 
 methods.without = ->
-  @_action = [WITHOUT, arguments]
+  @_action = [WITHOUT, sliceArray arguments]
   return Sequence this
 
 methods.fold = (value, iterator) ->
@@ -85,7 +87,8 @@ methods.delete = ->
   return Datum this
 
 methods.run = ->
-  Promise.try => @_run()
+  Promise.resolve()
+    .then @_run.bind this, {}
 
 methods.then = (onFulfilled) ->
   @run().then onFulfilled
@@ -94,41 +97,38 @@ methods._get = (value) ->
   @_action = [GET, value]
   return Sequence this
 
-methods._getTable = ->
-  query = @_query
-  while !query._tableId
-    query = query._query
-  return query._tableId
-
-methods._run = ->
-  array = @_query._run()
-  assertType array, Array
+methods._run = (context) ->
+  rows = @_query._run context
+  assertType rows, Array
 
   unless action = @_action
-    return array
+    return rows
 
   switch action[0]
 
-    # when DO
-    #
-    # when GET
-    #
+    when GET
+      return seq.access rows, action[1]
+
     # when NTH
     #
     # when GET_FIELD
     #
     # when OFFSETS_OF
-    #
-    # when UPDATE
-    #
-    # when FILTER
+
+    when UPDATE
+      return updateRows rows, action[1], action[2]
+
+    when FILTER
+      return seq.filter rows, action[1]
 
     when ORDER_BY
-      return orderBy array, action[1]
+      return seq.sort rows, action[1]
 
-    # when LIMIT
-    #
-    # when SLICE
+    when LIMIT
+      return seq.limit rows, action[1]
+
+    when SLICE
+      return seq.slice rows, action[1]
     #
     # when PLUCK
     #
@@ -137,7 +137,7 @@ methods._run = ->
     # when FOLD
 
     when DELETE
-      return deleteRows @_getTable(), array
+      return deleteRows @_db, context.tableId, rows
 
 module.exports = Sequence
 
@@ -145,29 +145,44 @@ module.exports = Sequence
 # Helpers
 #
 
-orderBy = (array, args) ->
-  # TODO: Check for args[1].index
+updateRows = (rows, patch, options) ->
+  # TODO: Throw an error if not an array of rows.
 
-  if isType args[0], Array
-    descending = args[0][0] is "desc"
-    key = args[0][1]
+  if utils.isQuery patch
+    patch = patch._run()
 
-  else if isType args[0], String
-    key = args[0]
+  if utils.isQuery options
+    options = options._run()
 
-  assertType key, String
-  return array.slice().sort (a, b) ->
-    # TODO: Implement sorting
+  options ?= {}
 
-deleteRows = (tableId, rows) ->
+  assertType patch, Object
+  assertType options, Object
+
+  for key, value of patch
+
+    if utils.isQuery value
+      value = value._run()
+
+    if value is undefined
+      throw Error "Object field '#{key}' may not be undefined"
+
+  for row in rows
+    combine row, patch
+
+  return {replaced: rows.length}
+
+deleteRows = (db, tableId, rows) ->
+  assertType tableId, String
+  # TODO: Throw an error if not an array of rows.
 
   count = 0
-  table = tables.get tableId
+  table = db._tables[tableId]
   table = table.filter (row) ->
     if ~rows.indexOf row
       count += 1
       return no
     return yes
 
-  tables.set tableId, table
+  db._tables[tableId] = table
   return {deleted: count}

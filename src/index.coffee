@@ -1,37 +1,38 @@
 
 assertType = require "assertType"
-isType = require "isType"
 
-Selection = require "./Selection"
-Table = require "./Table"
-
-db = exports
-
-db.table = (tableId) -> Table tableId
-
-db.row = Selection()
-
-db.uuid = require "./uuid"
-
-db.object = (key, value) ->
-  object = {}
-  object[key] = value
-  return object
-
-db.args = (array) -> array
-
-db.desc = (attr) -> ["desc", attr]
-
-db.do = ->
-  throw Error "Not implemented"
-
-db.branch = ->
-  throw Error "Not implemented"
+Database = require "./Database"
+utils = require "./utils"
 
 module.exports = (options = {}) ->
   assertType options, Object
 
-  if options.tables
-    require("./tables").init options.tables
+  db = new Database options.name or "test"
+  db.init = (tables) ->
+    assertType tables, Object
+    for tableId, table of tables
+      db._tables[tableId] = table
+    return
 
   return db
+
+#
+# Helpers
+#
+
+queryTypes = [
+  require "./Selection"
+  require "./Sequence"
+  require "./Datum"
+  require "./Table"
+]
+
+utils.isQuery = (value) ->
+  return no unless value
+  return yes if ~queryTypes.indexOf value.constructor
+  return no
+
+utils.runQueries = (args) ->
+  for arg, index in args
+    args[index] = arg._run() if utils.isQuery arg
+  return
