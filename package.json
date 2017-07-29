@@ -6,6 +6,12 @@
     "lotus-coffee"
   ],
   "dependencies": {
+    "Either": "aleclarson/Either#1.0.3",
+    "assertType": "aleclarson/assertType#2.0.2",
+    "combine": "aleclarson/combine#1.0.0",
+    "isConstructor": "aleclarson/isConstructor#1.0.0",
+    "setType": "aleclarson/setType#1.0.0",
+    "sliceArray": "aleclarson/sliceArray#1.0.0",
     "uuid": "^3.1.0"
   }
 }
