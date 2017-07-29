@@ -3,7 +3,6 @@
 
 assertType = require "assertType"
 sliceArray = require "sliceArray"
-combine = require "combine"
 setType = require "setType"
 
 Selection = require "./Selection"
@@ -87,7 +86,7 @@ methods.delete = ->
 
 methods.run = ->
   Promise.resolve()
-    .then @_run.bind this, {}
+    .then @_run.bind this
 
 methods.then = (onFulfilled) ->
   @run().then onFulfilled
@@ -96,7 +95,8 @@ methods._get = (value) ->
   @_action = [GET, value]
   return Sequence this
 
-methods._run = (context) ->
+methods._run = (context = {}) ->
+  Object.assign context, @_context
   rows = @_query._run context
   assertType rows, Array
 
@@ -158,16 +158,9 @@ updateRows = (rows, patch, options) ->
   assertType patch, Object
   assertType options, Object
 
-  for key, value of patch
-
-    if utils.isQuery value
-      value = value._run()
-
-    if value is undefined
-      throw Error "Object field '#{key}' may not be undefined"
-
+  # TODO: Track which rows are not modified.
   for row in rows
-    combine row, patch
+    utils.merge row, patch
 
   return {replaced: rows.length}
 

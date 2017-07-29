@@ -1,5 +1,6 @@
 
 assertType = require "assertType"
+sliceArray = require "sliceArray"
 setType = require "setType"
 
 utils = require "./utils"
@@ -15,12 +16,13 @@ LE = i++
 ADD = i++
 SUB = i++
 NTH = i++
+COUNT = i++
 MERGE = i++
 FILTER = i++
-DEFAULT = i++
 GET_FIELD = i++
 WITHOUT = i++
 PLUCK = i++
+UPDATE = i++
 DELETE = i++
 
 Datum = (query) ->
@@ -70,35 +72,53 @@ methods.nth = (value) ->
   @_action = [NTH, value]
   return Datum this
 
-methods.merge = (values) ->
-  @_action = [MERGE, values]
+methods.count = ->
+  @_action = [COUNT]
+  return Datum this
+
+methods.merge = ->
+  @_action = [MERGE, sliceArray arguments]
   return Datum this
 
 methods.filter = (value, options) ->
-
+  @_action = [FILTER, value, options]
+  return Datum this
 
 methods.default = (value) ->
   @_context = {default: value}
   return Datum this
 
-methods.getField = ->
+methods.getField = (value) ->
+  @_action = [GET_FIELD, value]
+  return Datum this
 
 methods.without = ->
+  @_action = [WITHOUT, sliceArray arguments]
+  return Datum this
 
 methods.pluck = ->
+  @_action = [PLUCK, sliceArray arguments]
+  return Datum this
 
-# NOTE: This is required because sequence(0) returns a `Datum` instance.
+# Sequences sometimes return a row wrapped with `Datum`.
+methods.update = (values) ->
+  @_action = [UPDATE, values]
+  return Datum this
+
+# Sequences sometimes return a row wrapped with `Datum`.
 methods.delete = ->
+  @_action = [DELETE]
+  return Datum this
 
 methods.run = ->
-  context = Object.assign {}, @_context
   Promise.resolve()
-    .then @_run.bind this, context
+    .then @_run.bind this
 
 methods.then = (onFulfilled) ->
   @run().then onFulfilled
 
-methods._run = (context) ->
+methods._run = (context = {}) ->
+  Object.assign context, @_context
   result = @_query._run context
 
   unless action = @_action
@@ -106,8 +126,40 @@ methods._run = (context) ->
 
   switch action[0]
 
+    # when EQ
+    #
+    # when NE
+    #
+    # when GT
+    #
+    # when LT
+    #
+    # when GE
+    #
+    # when LE
+    #
+    # when ADD
+    #
+    # when SUB
+    #
+    # when NTH
+    #
+    # when COUNT
+    #
+    # when MERGE
+    #
+    # when FILTER
+
     when GET_FIELD
       return getField result, action[1]
+
+    # when WITHOUT
+    #
+    # when PLUCK
+    #
+    # when UPDATE
+    #
+    # when DELETE
 
 module.exports = Datum
 

@@ -1,11 +1,13 @@
 
 isConstructor = require "isConstructor"
 assertType = require "assertType"
+sliceArray = require "sliceArray"
 
 {isArray} = Array
 
 utils = exports
 
+# TODO: Support sub-queries.
 utils.equals = (value1, value2) ->
 
   if isArray value1
@@ -27,11 +29,13 @@ utils.flatten = (input, output = []) ->
     else output.push value
   return output
 
+# TODO: Support sub-queries as keys.
 utils.pluck = (input, keys) ->
   assertType input, Object
   assertType keys, Array
   return pluckWithArray keys, input, {}
 
+# TODO: Support sub-queries as keys.
 # TODO: Support nested arrays/objects for `without`.
 utils.without = (input, keys) ->
   assertType input, Object
@@ -40,6 +44,51 @@ utils.without = (input, keys) ->
   for key, value of input
     unless ~keys.indexOf key
       output[key] = value
+  return output
+
+utils.merge = (output) ->
+  assertType output, Object
+  inputs = sliceArray arguments, 1
+  for input, index in inputs
+
+    if utils.isQuery input
+      input = input._run()
+
+    if input is undefined
+      throw Error "Argument #{index} to merge may not be `undefined`"
+
+    # Non-objects overwrite the output.
+    unless isConstructor input, Object
+
+      # Avoid mapping the array if not the last input.
+      if isArray(input) and (index is inputs.length - 1)
+        output = input.map (value) ->
+          return value._run() if utils.isQuery value
+          return value
+
+      else output = input
+      continue
+
+    # Ensure the output is an object before merging.
+    output = {} unless isConstructor output, Object
+
+    for key, value of input
+
+      if utils.isQuery value
+        value = value._run()
+
+      if value is undefined
+        throw Error "Object field '#{key}' may not be undefined"
+
+      unless isConstructor value, Object
+        output[key] = value
+
+      else unless isConstructor output[key], Object
+        output[key] = utils.merge {}, value
+
+      else
+        utils.merge output[key], value
+
   return output
 
 #

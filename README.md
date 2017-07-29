@@ -9,15 +9,16 @@ The **end goal** is to replicate the API of [`rethinkdbdash`](https://github.com
 You should get the same results with either library.
 This goal won't be reached (anytime soon) without outside contribution.
 
+It's pertinent this library is well-tested.
+You can help expose edge cases by writing tests.
+
 If you find a method not behaving as expected, please open an issue!
 
-It's pertinent this library is well-tested. You can help expose edge cases by writing tests.
-
-**Contributors are welcome!** :grin:
+**Contributions are welcome!** :grin:
 
 ---
 
-### What works as expected
+### What's included?
 
 Be advised that anything on this list may not support specific use cases yet.
 
@@ -40,13 +41,13 @@ Be advised that anything on this list may not support specific use cases yet.
   - `()`, `do`, `eq`, `ne`, `merge`, `default`, `getField`, `without`, `pluck`, `update`, `delete`
 
 - `Datum` methods
-  - `()`, `do`, `eq`, `ne`, `gt`, `lt`, `ge`, `le`, `add`, `sub`, `nth`, `merge`, `filter`, `default`, `getField`, `without`, `pluck`
+  - `()`, `do`, `eq`, `ne`, `gt`, `lt`, `ge`, `le`, `add`, `sub`, `merge`, `default`, `getField`, `without`, `pluck`
 
 ---
 
 ### What's missing?
 
-This list may not be exhaustive.
+This list may not be exhaustive and will be updated accordingly.
 
 - `r.row`
 

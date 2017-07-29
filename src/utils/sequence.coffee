@@ -76,12 +76,9 @@ seq.filter = (array, args) ->
       return no unless matcher row
     return yes
 
-# TODO: Support sorting by an array value.
+# TODO: Support sorting by an array/object value.
 seq.sort = (array, args) ->
   utils.runQueries args
-
-  # TODO: Support `index` option
-  # if isConstructor args[1], Object
 
   if isArray args[0]
     sort = args[0][0]

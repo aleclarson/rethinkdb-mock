@@ -1,8 +1,11 @@
 
+assertType = require "assertType"
+sliceArray = require "sliceArray"
 setType = require "setType"
 
 Selection = require "./Selection"
 Datum = require "./Datum"
+utils = require "./utils"
 
 i = 1
 EQ = i++
@@ -34,7 +37,7 @@ methods.ne = (value) ->
   return Datum this
 
 methods.merge = ->
-  @_action = [MERGE, arguments]
+  @_action = [MERGE, sliceArray arguments]
   return Datum this
 
 methods.default = (value) ->
@@ -46,11 +49,11 @@ methods.getField = (attr) ->
   return Datum this
 
 methods.without = ->
-  @_action = [WITHOUT, arguments]
+  @_action = [WITHOUT, sliceArray arguments]
   return Datum this
 
 methods.pluck = ->
-  @_action = [PLUCK, arguments]
+  @_action = [PLUCK, sliceArray arguments]
   return Datum this
 
 methods.update = (values) ->
@@ -62,9 +65,8 @@ methods.delete = ->
   return Datum this
 
 methods.run = ->
-  context = Object.assign {}, @_context
   Promise.resolve()
-    .then @_run.bind this, context
+    .then @_run.bind this
 
 methods.then = (onFulfilled) ->
   @run().then onFulfilled
@@ -74,13 +76,14 @@ methods._get = (key) ->
   then @getField key
   else @nth key
 
-methods._run = (context) ->
+methods._run = (context = {}) ->
+  Object.assign context, @_context
   result = @_query._run context
 
   unless action = @_action
     return result
 
-  # switch action[0]
+  switch action[0]
   #
   #   when EQ
   #
@@ -89,11 +92,44 @@ methods._run = (context) ->
   #   when MERGE
   #
   #   when GET_FIELD
-  #
-  #   when WITHOUT
-  #
-  #   when PLUCK
-  #
-  #   when DELETE
+
+    when WITHOUT
+      return utils.without result, action[1]
+
+    when PLUCK
+      return utils.pluck result, action[1]
+
+    when UPDATE
+      return updateRow result, action[1]
+
+    when DELETE
+      return deleteRow @_db, context.tableId, result
 
 module.exports = Selection
+
+#
+# Helpers
+#
+
+updateRow = (row, values) ->
+
+  unless row
+    return {skipped: 1}
+
+  if utils.isQuery values
+    values = values._run()
+
+  # TODO: Track if the row is not modified.
+  utils.merge row, values
+  return {updated: 1}
+
+deleteRow = (db, tableId, row) ->
+  assertType tableId, String
+
+  unless row
+    return {skipped: 1}
+
+  table = db._tables[tableId]
+  index = table.indexOf row
+  table.splice index, 1
+  return {deleted: 1}

@@ -52,18 +52,18 @@ do ->
 
 methods.run = ->
   Promise.resolve().then =>
-    result = @_run {}
-    return result if @_action
-    return result.slice()
+    return @_run() if @_action
+    return @_run().slice()
 
 methods.then = (onFulfilled) ->
   @run().then onFulfilled
 
 methods._run = (context) ->
-  context.tableId = @_tableId
 
   unless table = @_db._tables[@_tableId]
     throw Error "Table `#{@_tableId}` does not exist"
+
+  context?.tableId = @_tableId
 
   unless action = @_action
     return table
