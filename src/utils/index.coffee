@@ -1,7 +1,8 @@
 
 isConstructor = require "isConstructor"
 assertType = require "assertType"
-isArray = Array.isArray
+
+{isArray} = Array
 
 utils = exports
 

@@ -4,6 +4,8 @@ assertType = require "assertType"
 
 utils = require "."
 
+{isArray} = Array
+
 seq = exports
 
 seq.access = (array, value) ->
@@ -81,7 +83,7 @@ seq.sort = (array, args) ->
   # TODO: Support `index` option
   # if isConstructor args[1], Object
 
-  if isConstructor args[0], Array
+  if isArray args[0]
     sort = args[0][0]
     key = args[0][1]
 
@@ -116,7 +118,7 @@ seq.slice = (array, args) ->
   utils.runQueries args
 
   options =
-    if isType args[args.length - 1], Object
+    if isConstructor args[args.length - 1], Object
     then args.pop()
     else {}
 

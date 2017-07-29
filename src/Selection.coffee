@@ -11,6 +11,7 @@ MERGE = i++
 GET_FIELD = i++
 WITHOUT = i++
 PLUCK = i++
+UPDATE = i++
 DELETE = i++
 
 Selection = (query) ->
@@ -32,8 +33,8 @@ methods.ne = (value) ->
   @_action = [NE, value]
   return Datum this
 
-methods.merge = (values) ->
-  @_action = [MERGE, values]
+methods.merge = ->
+  @_action = [MERGE, arguments]
   return Datum this
 
 methods.default = (value) ->
@@ -50,6 +51,10 @@ methods.without = ->
 
 methods.pluck = ->
   @_action = [PLUCK, arguments]
+  return Datum this
+
+methods.update = (values) ->
+  @_action = [UPDATE, values]
   return Datum this
 
 methods.delete = ->

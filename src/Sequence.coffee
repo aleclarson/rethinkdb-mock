@@ -5,7 +5,6 @@ assertType = require "assertType"
 sliceArray = require "sliceArray"
 combine = require "combine"
 setType = require "setType"
-isType = require "isType"
 
 Selection = require "./Selection"
 Datum = require "./Datum"

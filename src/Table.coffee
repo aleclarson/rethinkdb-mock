@@ -1,14 +1,16 @@
 
+isConstructor = require "isConstructor"
 assertType = require "assertType"
 sliceArray = require "sliceArray"
 setType = require "setType"
 Either = require "Either"
-isType = require "isType"
 
 Selection = require "./Selection"
 Sequence = require "./Sequence"
 Datum = require "./Datum"
 uuid = require "./uuid"
+
+{isArray} = Array
 
 i = 1
 GET = i++
@@ -111,7 +113,7 @@ getRow = (table, id) ->
 getRows = (table, args) ->
   return [] unless args.length
 
-  if isType args[args.length - 1], Object
+  if isConstructor args[args.length - 1], Object
     key = args.pop().index
 
   argType = Either Number, String, Boolean, Array
@@ -121,7 +123,7 @@ getRows = (table, args) ->
   key ?= "id"
   table.filter (row) ->
     for arg in args
-      if isType arg, Array
+      if isArray arg
         return yes if utils.arrayEquals arg, row[key]
       else if arg is row[key]
         return yes
