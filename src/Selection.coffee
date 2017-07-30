@@ -6,6 +6,7 @@ setType = require "setType"
 Selection = require "./Selection"
 Datum = require "./Datum"
 utils = require "./utils"
+sel = require "./utils/selection"
 
 i = 1
 EQ = i++
@@ -14,6 +15,7 @@ MERGE = i++
 GET_FIELD = i++
 WITHOUT = i++
 PLUCK = i++
+REPLACE = i++
 UPDATE = i++
 DELETE = i++
 
@@ -54,6 +56,10 @@ methods.without = ->
 
 methods.pluck = ->
   @_action = [PLUCK, sliceArray arguments]
+  return Datum this
+
+methods.replace = (values) ->
+  @_action = [REPLACE, values]
   return Datum this
 
 methods.update = (values) ->
@@ -99,37 +105,13 @@ methods._run = (context = {}) ->
     when PLUCK
       return utils.pluck result, action[1]
 
+    when REPLACE
+      return sel.replace @_db, context.tableId, result.id, action[1]
+
     when UPDATE
-      return updateRow result, action[1]
+      return sel.update result, action[1]
 
     when DELETE
-      return deleteRow @_db, context.tableId, result
+      return sel.delete @_db, context.tableId, result
 
 module.exports = Selection
-
-#
-# Helpers
-#
-
-updateRow = (row, values) ->
-
-  unless row
-    return {skipped: 1}
-
-  if utils.isQuery values
-    values = values._run()
-
-  # TODO: Track if the row is not modified.
-  utils.merge row, values
-  return {updated: 1}
-
-deleteRow = (db, tableId, row) ->
-  assertType tableId, String
-
-  unless row
-    return {skipped: 1}
-
-  table = db._tables[tableId]
-  index = table.indexOf row
-  table.splice index, 1
-  return {deleted: 1}

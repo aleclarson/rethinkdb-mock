@@ -31,6 +31,12 @@ describe "db.table().insert()", ->
       expect(db._tables.users.length).toBe 2
       expect(db._tables.users[1].id).toBe res.generated_keys[0]
 
+  it "can insert multiple rows at once", ->
+    users.insert [{name: "Joe"}, {name: "Jim"}]
+    .then (res) ->
+      expect(res.inserted).toBe 2
+      expect(res.generated_keys.length).toBe 2
+
 describe "db.table().get()", ->
 
   it "gets a row by its primary key", ->
@@ -39,7 +45,7 @@ describe "db.table().get()", ->
       expect(res).toBe db._tables.users[0]
       expect(res.id).toBe 1
 
-  it "returns null if a row does not exist", ->
+  it "returns null if a row never existed", ->
     users.get 100
     .then (res) ->
       expect(res).toBe null

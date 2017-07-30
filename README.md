@@ -38,7 +38,7 @@ Be advised that anything on this list may not support specific use cases yet.
   - `()`, `do`, `nth`, `getField`, `offsetsOf`, `update`, `filter`, `orderBy`, `limit`, `slice`, `pluck`, `without`, `fold`, `delete`
 
 - `Selection` methods
-  - `()`, `do`, `eq`, `ne`, `merge`, `default`, `getField`, `without`, `pluck`, `update`, `delete`
+  - `()`, `do`, `eq`, `ne`, `merge`, `default`, `getField`, `without`, `pluck`, `replace`, `update`, `delete`
 
 - `Datum` methods
   - `()`, `do`, `eq`, `ne`, `gt`, `lt`, `ge`, `le`, `add`, `sub`, `merge`, `default`, `getField`, `without`, `pluck`
@@ -52,7 +52,7 @@ This list may not be exhaustive and will be updated accordingly.
 - `r.row`
 
 - Writing data
-  - `sync`, `replace`
+  - `sync`
 
 - Selecting data
   - `between`

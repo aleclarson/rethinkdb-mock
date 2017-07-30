@@ -22,6 +22,7 @@ FILTER = i++
 GET_FIELD = i++
 WITHOUT = i++
 PLUCK = i++
+REPLACE = i++
 UPDATE = i++
 DELETE = i++
 
@@ -98,6 +99,10 @@ methods.without = ->
 
 methods.pluck = ->
   @_action = [PLUCK, sliceArray arguments]
+  return Datum this
+
+methods.replace = (values) ->
+  @_action = [REPLACE, values]
   return Datum this
 
 # Sequences sometimes return a row wrapped with `Datum`.

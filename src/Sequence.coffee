@@ -1,5 +1,3 @@
-# TODO: Support `offsetsOf` function argument
-# TODO: Support `orderBy` function argument
 
 assertType = require "assertType"
 sliceArray = require "sliceArray"
@@ -52,8 +50,8 @@ methods.update = (value, options) ->
   @_action = [UPDATE, value, options]
   return Datum this
 
-methods.filter = (value, options) ->
-  @_action = [FILTER, value, options]
+methods.filter = ->
+  @_action = [FILTER, sliceArray arguments]
   return Sequence this
 
 methods.orderBy = ->
@@ -93,7 +91,7 @@ methods.then = (onFulfilled) ->
 
 methods._get = (value) ->
   @_action = [GET, value]
-  return Sequence this
+  return Datum this
 
 methods._run = (context = {}) ->
   Object.assign context, @_context
@@ -108,11 +106,14 @@ methods._run = (context = {}) ->
     when GET
       return seq.access rows, action[1]
 
-    # when NTH
-    #
-    # when GET_FIELD
-    #
-    # when OFFSETS_OF
+    when NTH
+      return seq.nth rows, action[1]
+
+    when GET_FIELD
+      return seq.getField rows, action[1]
+
+    when OFFSETS_OF
+      return seq.offsetsOf rows, action[1]
 
     when UPDATE
       return updateRows rows, action[1], action[2]
@@ -128,10 +129,12 @@ methods._run = (context = {}) ->
 
     when SLICE
       return seq.slice rows, action[1]
-    #
-    # when PLUCK
-    #
-    # when WITHOUT
+
+    when PLUCK
+      return arrayPluck rows, action[1]
+
+    when WITHOUT
+      return arrayWithout rows, action[1]
     #
     # when FOLD
 
@@ -163,6 +166,14 @@ updateRows = (rows, patch, options) ->
     utils.merge row, patch
 
   return {replaced: rows.length}
+
+arrayPluck = (rows, args) ->
+  rows.map (row) ->
+    utils.pluck row, args
+
+arrayWithout = (rows, args) ->
+  rows.map (row) ->
+    utils.without row, args
 
 deleteRows = (db, tableId, rows) ->
   assertType tableId, String

@@ -46,6 +46,7 @@ utils.without = (input, keys) ->
       output[key] = value
   return output
 
+# TODO: Track if the output wasn't modified.
 utils.merge = (output) ->
   assertType output, Object
   inputs = sliceArray arguments, 1

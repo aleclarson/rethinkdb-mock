@@ -35,6 +35,8 @@ methods.getAll = ->
   self = Table @_db, @_tableId, [GET_ALL, sliceArray arguments]
   return Sequence self
 
+# TODO: Support inserting multiple rows.
+# TODO: Support options argument.
 methods.insert = (row) ->
   self = Table @_db, @_tableId, [INSERT, row]
   return Datum self
@@ -124,7 +126,7 @@ getRows = (table, args) ->
   table.filter (row) ->
     for arg in args
       if isArray arg
-        return yes if utils.arrayEquals arg, row[key]
+        return yes if utils.equals arg, row[key]
       else if arg is row[key]
         return yes
     return no

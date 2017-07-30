@@ -36,16 +36,44 @@ seq.getField = (array, attr) ->
   if utils.isQuery attr
     attr = attr._run()
 
+  results = []
+
   assertType attr, String
-  return array.map (value) ->
+  array.forEach (value) ->
     assertType value, Object
-    return value[attr]
+    if value.hasOwnProperty attr
+      results.push value[attr]
+      return
+
+  return results
+
+# TODO: Support `offsetsOf` function argument
+seq.offsetsOf = (array, value) ->
+
+  if utils.isQuery value
+    value = value._run()
+
+  if value is undefined
+    throw Error "Argument 1 to offsetsOf may not be `undefined`"
+
+  if isConstructor value, Function
+    throw Error "Function argument not yet implemented"
+
+  offsets = []
+  for value2, index in array
+    offsets.push index if utils.equals value2, value
+  return offsets
 
 seq.filter = (array, args) ->
   utils.runQueries args
 
-  # TODO: Support `default` option
-  # if isConstructor args[1], Object
+  if args[0] is undefined
+    throw Error "Argument 1 to filter may not be `undefined`"
+
+  if args.length > 1
+    assertType options = args[1], Object
+    # TODO: Support `default` option
+    # TODO: Support sub-queries in the `options` object.
 
   matchers = []
   if isConstructor args[0], Object
@@ -67,9 +95,11 @@ seq.filter = (array, args) ->
   # TODO: Support function argument
   else if isConstructor args[0], Function
     # NOTE: May want to call function before this query runs.
-    throw Error "Filter functions are not implemented"
+    throw Error "Filter functions are not implemented yet"
 
-  else throw TypeError "Expected an Object or Function!"
+  # The native API returns the sequence when
+  # the filter is neither an object nor function.
+  else return array.slice()
 
   return array.filter (row) ->
     for matcher in matchers
@@ -77,6 +107,7 @@ seq.filter = (array, args) ->
     return yes
 
 # TODO: Support sorting by an array/object value.
+# TODO: Support `orderBy` function argument
 seq.sort = (array, args) ->
   utils.runQueries args
 
@@ -89,10 +120,10 @@ seq.sort = (array, args) ->
     key = args[0]
 
   if sort is "asc"
-    sorter = sortAscending
+    sorter = sortAscending key
 
   else if sort is "desc"
-    sorter = sortDescending
+    sorter = sortDescending key
 
   else throw Error "Invalid sort algorithm: '#{sort}'"
 
@@ -114,14 +145,19 @@ seq.limit = (array, n) ->
 seq.slice = (array, args) ->
   utils.runQueries args
 
+  if (args.length < 1) or (args.length > 3)
+    throw Error "Expected between 1 and 3 arguments but found #{args.length}"
+
   options =
     if isConstructor args[args.length - 1], Object
     then args.pop()
     else {}
 
   [startIndex, endIndex] = args
-  startIndex ?= 0
   endIndex ?= array.length
+
+  assertType startIndex, Number
+  assertType endIndex, Number
 
   if options.leftBound is "open"
     startIndex += 1
