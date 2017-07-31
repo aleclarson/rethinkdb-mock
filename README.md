@@ -18,6 +18,23 @@ If you find a method not behaving as expected, please open an issue!
 
 ---
 
+### Why use this?
+
+Typically, when testing code that uses RethinkDB, you need to use the `rethinkdb` CLI to start a process
+before running your tests. You'll decide to either connect to the same database you use for manual QA testing
+or create a temporary database purely for automated testing (which you'll need to populate with data).
+
+Using `rethinkdb-mock` allows you to create a database for each test suite, which means less
+work goes into ensuring the database is in the expected state from one suite to the next.
+And since test suites are typically split into their own files, the test order can force you to
+perform confusing and unnecessary setup/teardown operations. It's often simpler to setup an
+in-memory database dedicated to a specific test suite, especially if you only want to run
+a specific suite with Jasmine's `fit`.
+
+If this doesn't convince you, please open an issue explaining your reasoning! :+1:
+
+---
+
 ### What's included?
 
 Be advised that anything on this list may not support specific use cases yet.
