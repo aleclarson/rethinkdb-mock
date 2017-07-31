@@ -49,14 +49,17 @@ const db = rethinkdb({
   name: 'test' // The default value
 })
 
-// Reset the database.
-db.init({
-  users: [],
-  friends: [],
-})
+describe('Some test suite', () => {
 
-describe(() => {
-  // Have at it!
+  // Reset the database between suites.
+  beforeAll(() => {
+    db.init({
+      users: [],
+      friends: [],
+    })
+  })
+
+  // Now create your tests...
 })
 ```
 
@@ -79,13 +82,13 @@ Be advised that anything on this list may not support specific use cases yet.
   - `insert`, `get`, `getAll`, `delete`
 
 - `Sequence` methods
-  - `()`, `do`, `nth`, `getField`, `offsetsOf`, `update`, `filter`, `orderBy`, `limit`, `slice`, `pluck`, `without`, `fold`, `delete`
+  - `()`, `do`, `nth`, `getField`, `hasFields`, `offsetsOf`, `update`, `filter`, `orderBy`, `limit`, `slice`, `pluck`, `without`, `fold`, `delete`
 
 - `Selection` methods
-  - `()`, `do`, `eq`, `ne`, `merge`, `default`, `getField`, `without`, `pluck`, `replace`, `update`, `delete`
+  - `()`, `do`, `eq`, `ne`, `merge`, `default`, `getField`, `hasFields`, `without`, `pluck`, `replace`, `update`, `delete`
 
 - `Datum` methods
-  - `()`, `do`, `eq`, `ne`, `gt`, `lt`, `ge`, `le`, `add`, `sub`, `merge`, `default`, `getField`, `without`, `pluck`
+  - `()`, `do`, `eq`, `ne`, `gt`, `lt`, `ge`, `le`, `add`, `sub`, `merge`, `default`, `getField`, `hasFields`, `without`, `pluck`
 
 ---
 
