@@ -35,6 +35,33 @@ If this doesn't convince you, please open an issue explaining your reasoning! :+
 
 ---
 
+### Getting started
+
+```js
+const rethinkdb = require('rethinkdb-mock')
+
+// Replace `rethinkdbdash` with `rethinkdb-mock`
+const mock = require('mock-require')
+mock('rethinkdbdash', rethinkdb)
+
+// You must use the same database name as the code you're testing.
+const db = rethinkdb({
+  name: 'test' // The default value
+})
+
+// Reset the database.
+db.init({
+  users: [],
+  friends: [],
+})
+
+describe(() => {
+  // Have at it!
+})
+```
+
+---
+
 ### What's included?
 
 Be advised that anything on this list may not support specific use cases yet.
