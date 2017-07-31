@@ -26,21 +26,23 @@ methods.tableDrop = (tableId) ->
 # TODO: Support `expr`
 # methods.expr = ->
 
-methods.uuid = require "./uuid"
+methods.uuid = require "./utils/uuid"
 
-methods.object = (key, value) ->
-  object = {}
-  object[key] = value
-  return object
+# TODO: Support `object`
+# methods.object = (key, value) ->
+#   object = {}
+#   object[key] = value
+#   return object
 
-methods.args = (array) -> array
+# TODO: Support `args`
+# methods.args = (array) -> array
 
 methods.desc = (attr) -> ["desc", attr]
 
-methods.do = ->
-  throw Error "Not implemented"
+# TODO: Support `do`
+# methods.do = ->
 
-methods.branch = ->
-  throw Error "Not implemented"
+# TODO: Support `branch`
+# methods.branch = ->
 
 module.exports = Database

@@ -114,3 +114,59 @@ describe "utils.pluck()", ->
       expect(output.a.b.hasOwnProperty('d')).toBe false
 
 describe "utils.without()", ->
+
+  it "excludes the given keys from the result", ->
+    input = {a: 1, b: 2, c: 3}
+    output = utils.without input, ['a', 'c']
+    expect(output.b).toBe 2
+    expect(output.hasOwnProperty('a')).toBe false
+    expect(output.hasOwnProperty('c')).toBe false
+
+  it "supports nested arrays", ->
+    input = {a: 1, b: 2, c: 3}
+    output = utils.without input, [['a'], ['c']]
+    expect(output.b).toBe 2
+    expect(output.hasOwnProperty('a')).toBe false
+    expect(output.hasOwnProperty('c')).toBe false
+
+describe "utils.merge()", ->
+
+  it "merges an array of objects into an existing object", ->
+    object = {a: 1}
+    result = utils.merge object, [{a: 2, b: 3}, {c: 4}]
+    expect(object is result).toBe true
+    expect(object.a).toBe 2
+    expect(object.b).toBe 3
+    expect(object.c).toBe 4
+
+  it "merges recursively", ->
+    object = {a: {b: {c: 1}}}
+    result = utils.merge object, [{a: {b: {d: 2}, e: 3}}]
+    expect(object.a.b.c).toBe 1
+    expect(object.a.b.d).toBe 2
+    expect(object.a.e).toBe 3
+
+  it "does not merge arrays", ->
+    object = {a: [1, 2]}
+    result = utils.merge object, [{a: [3]}]
+    expect(object is result).toBe true
+    expect(object.a).toEqual [3]
+
+  it "overwrites the first argument if an input is not an object", ->
+
+    object = {}
+    expect(utils.merge object, [1]).toBe 1
+    expect(utils.merge object, [{a: 1}, '']).toBe ''
+    expect(utils.merge object, [[true]]).toEqual [true]
+
+    # Another object is created if a non-object input is followed by an object.
+    result = utils.merge object, [{a: 1}, null, {b: 2}]
+    expect(result.b).toBe 2
+    expect(result.hasOwnProperty('a')).toBe false
+    expect(result is object).toBe false
+
+  # This allows for proper merging of one row into another.
+  it "clones any merged arrays", ->
+    array = [1]
+    result = utils.merge {}, {array}
+    expect(result.array is array).toBe false

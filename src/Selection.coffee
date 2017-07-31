@@ -6,23 +6,25 @@ setType = require "setType"
 Selection = require "./Selection"
 Datum = require "./Datum"
 utils = require "./utils"
-sel = require "./utils/selection"
+row = require "./utils/row"
 
 i = 1
 EQ = i++
 NE = i++
 MERGE = i++
 GET_FIELD = i++
+HAS_FIELDS = i++
 WITHOUT = i++
 PLUCK = i++
 REPLACE = i++
 UPDATE = i++
 DELETE = i++
 
-Selection = (query) ->
-  self = (key) -> self._get key
+Selection = (query, action) ->
+  self = (attr) -> self._access attr
   self._db = query._db
   self._query = query
+  self._action = action if action
   return setType self, Selection
 
 methods = Selection.prototype
@@ -31,44 +33,49 @@ methods.do = (callback) ->
   return callback this
 
 methods.eq = (value) ->
-  @_action = [EQ, value]
-  return Datum this
+  self = Selection @_query, [EQ, value]
+  return Datum self
 
 methods.ne = (value) ->
-  @_action = [NE, value]
-  return Datum this
+  self = Selection @_query, [NE, value]
+  return Datum self
 
 methods.merge = ->
-  @_action = [MERGE, sliceArray arguments]
-  return Datum this
+  self = Selection @_query, [MERGE, sliceArray arguments]
+  return Datum self
 
 methods.default = (value) ->
-  @_context = {default: value}
-  return this
+  self = Datum @_query
+  self._context = {default: value}
+  return self
 
 methods.getField = (attr) ->
-  @_action = [GET_FIELD, attr]
-  return Datum this
+  self = Selection @_query, [GET_FIELD, attr]
+  return Datum self
+
+methods.hasFields = ->
+  self = Selection @_query, [HAS_FIELDS, sliceArray arguments]
+  return Datum self
 
 methods.without = ->
-  @_action = [WITHOUT, sliceArray arguments]
-  return Datum this
+  self = Selection @_query, [WITHOUT, sliceArray arguments]
+  return Datum self
 
 methods.pluck = ->
-  @_action = [PLUCK, sliceArray arguments]
-  return Datum this
+  self = Selection @_query, [PLUCK, sliceArray arguments]
+  return Datum self
 
 methods.replace = (values) ->
-  @_action = [REPLACE, values]
-  return Datum this
+  self = Selection @_query, [REPLACE, values]
+  return Datum self
 
 methods.update = (values) ->
-  @_action = [UPDATE, values]
-  return Datum this
+  self = Selection @_query, [UPDATE, values]
+  return Datum self
 
 methods.delete = ->
-  @_action = [DELETE]
-  return Datum this
+  self = Selection @_query, [DELETE]
+  return Datum self
 
 methods.run = ->
   Promise.resolve()
@@ -77,10 +84,9 @@ methods.run = ->
 methods.then = (onFulfilled) ->
   @run().then onFulfilled
 
-methods._get = (key) ->
-  if typeof key is "string"
-  then @getField key
-  else @nth key
+methods._access = (attr) ->
+  self = Selection @_query, [GET_FIELD, attr]
+  return Datum self
 
 methods._run = (context = {}) ->
   Object.assign context, @_context
@@ -90,14 +96,21 @@ methods._run = (context = {}) ->
     return result
 
   switch action[0]
-  #
-  #   when EQ
-  #
-  #   when NE
-  #
-  #   when MERGE
-  #
-  #   when GET_FIELD
+
+    when EQ
+      return utils.equals result, action[1]
+
+    when NE
+      return !utils.equals result, action[1]
+
+    when MERGE
+      return utils.merge utils.clone(result), action[1]
+
+    when GET_FIELD
+      return utils.getField result, action[1]
+
+    when HAS_FIELDS
+      return utils.hasFields result, action[1]
 
     when WITHOUT
       return utils.without result, action[1]
@@ -106,12 +119,12 @@ methods._run = (context = {}) ->
       return utils.pluck result, action[1]
 
     when REPLACE
-      return sel.replace @_db, context.tableId, result.id, action[1]
+      return row.replace @_db, context.tableId, result.id, action[1]
 
     when UPDATE
-      return sel.update result, action[1]
+      return row.update result, action[1]
 
     when DELETE
-      return sel.delete @_db, context.tableId, result
+      return row.delete @_db, context.tableId, result
 
 module.exports = Selection

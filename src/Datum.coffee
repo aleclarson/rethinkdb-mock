@@ -5,6 +5,8 @@ setType = require "setType"
 
 utils = require "./utils"
 
+{isArray} = Array
+
 i = 1
 DO = i++
 EQ = i++
@@ -19,17 +21,20 @@ NTH = i++
 COUNT = i++
 MERGE = i++
 FILTER = i++
+ACCESS = i++
 GET_FIELD = i++
+HAS_FIELDS = i++
 WITHOUT = i++
 PLUCK = i++
 REPLACE = i++
 UPDATE = i++
 DELETE = i++
 
-Datum = (query) ->
-  self = (key) -> self._get key
+Datum = (query, action) ->
+  self = (key) -> Datum self, [ACCESS, key]
   self._db = query._db
   self._query = query
+  self._action = action if action
   return setType self, Datum
 
 methods = Datum.prototype
@@ -38,82 +43,68 @@ methods.do = (callback) ->
   return callback this
 
 methods.eq = (value) ->
-  @_action = [EQ, value]
-  return Datum this
+  return Datum this, [EQ, value]
 
 methods.ne = (value) ->
-  @_action = [NE, value]
-  return Datum this
+  return Datum this, [NE, value]
 
 methods.gt = (value) ->
-  @_action = [GT, value]
-  return Datum this
+  return Datum this, [GT, value]
 
 methods.lt = (value) ->
-  @_action = [LT, value]
-  return Datum this
+  return Datum this, [LT, value]
 
 methods.ge = (value) ->
-  @_action = [GE, value]
-  return Datum this
+  return Datum this, [GE, value]
 
 methods.le = (value) ->
-  @_action = [LE, value]
-  return Datum this
+  return Datum this, [LE, value]
 
 methods.add = (value) ->
-  @_action = [ADD, value]
-  return Datum this
+  return Datum this, [ADD, value]
 
 methods.sub = (value) ->
-  @_action = [SUB, value]
-  return Datum this
+  return Datum this, [SUB, value]
 
 methods.nth = (value) ->
-  @_action = [NTH, value]
-  return Datum this
+  return Datum this, [NTH, value]
 
 methods.count = ->
-  @_action = [COUNT]
-  return Datum this
+  return Datum this, [COUNT]
 
 methods.merge = ->
-  @_action = [MERGE, sliceArray arguments]
-  return Datum this
+  return Datum this, [MERGE, sliceArray arguments]
 
 methods.filter = (value, options) ->
-  @_action = [FILTER, value, options]
-  return Datum this
+  return Datum this, [FILTER, value, options]
 
 methods.default = (value) ->
-  @_context = {default: value}
-  return Datum this
+  self = Datum this
+  self._context = {default: value}
+  return self
 
 methods.getField = (value) ->
-  @_action = [GET_FIELD, value]
-  return Datum this
+  return Datum this, [GET_FIELD, value]
+
+methods.hasFields = (value) ->
+  return Datum this, [HAS_FIELDS, sliceArray arguments]
 
 methods.without = ->
-  @_action = [WITHOUT, sliceArray arguments]
-  return Datum this
+  return Datum this, [WITHOUT, sliceArray arguments]
 
 methods.pluck = ->
-  @_action = [PLUCK, sliceArray arguments]
-  return Datum this
+  return Datum this, [PLUCK, sliceArray arguments]
 
 methods.replace = (values) ->
-  @_action = [REPLACE, values]
-  return Datum this
+  return Datum this, [REPLACE, values]
 
 # Sequences sometimes return a row wrapped with `Datum`.
 methods.update = (values) ->
-  @_action = [UPDATE, values]
-  return Datum this
+  return Datum this, [UPDATE, values]
 
 # Sequences sometimes return a row wrapped with `Datum`.
 methods.delete = ->
-  @_action = [DELETE]
-  return Datum this
+  return Datum this, [DELETE]
 
 methods.run = ->
   Promise.resolve()
@@ -151,12 +142,21 @@ methods._run = (context = {}) ->
     #
     # when COUNT
     #
-    # when MERGE
+    when MERGE
+      return merge result, action[1]
     #
     # when FILTER
+    #
+    # when NTH
+
+    when ACCESS
+      return utils.access result, action[1]
 
     when GET_FIELD
-      return getField result, action[1]
+      return utils.getField result, action[1]
+
+    when HAS_FIELDS
+      return utils.hasFields result, action[1]
 
     # when WITHOUT
     #
@@ -172,13 +172,12 @@ module.exports = Datum
 # Helpers
 #
 
-getField = (value, attr) ->
-  assertType value, Object
+merge = (result, args) ->
 
-  if utils.isQuery attr
-    attr = attr._run()
+  if isArray result
+    return result.map (result) ->
+      assertType result, Object
+      return utils.merge utils.clone(result), args
 
-  unless value.hasOwnProperty attr
-    throw Error "No attribute `#{attr}` in object"
-
-  return value[attr]
+  assertType result, Object
+  return utils.merge utils.clone(result), args

@@ -4,35 +4,27 @@ assertType = require "assertType"
 Database = require "./Database"
 utils = require "./utils"
 
+cache = Object.create null
+
 module.exports = (options = {}) ->
   assertType options, Object
 
-  db = new Database options.name or "test"
+  name = options.name or "test"
+  return db if db = cache[name]
+
+  db = new Database name
   db.init = (tables) ->
     assertType tables, Object
-    for tableId, table of tables
-      db._tables[tableId] = table
+    @_tables = tables
     return
 
+  cache[name] = db
   return db
 
-#
-# Helpers
-#
-
-queryTypes = [
+# Bind the possible query types.
+utils.isQuery = utils.isQuery.bind utils, [
   require "./Selection"
   require "./Sequence"
   require "./Datum"
   require "./Table"
 ]
-
-utils.isQuery = (value) ->
-  return no unless value
-  return yes if ~queryTypes.indexOf value.constructor
-  return no
-
-utils.runQueries = (args) ->
-  for arg, index in args
-    args[index] = arg._run() if utils.isQuery arg
-  return

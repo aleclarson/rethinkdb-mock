@@ -1,3 +1,4 @@
+# Utilities for sequences
 
 isConstructor = require "isConstructor"
 assertType = require "assertType"
@@ -14,47 +15,48 @@ seq.access = (array, value) ->
     value = value._run()
 
   if isConstructor value, Number
-  then seq.nth array, value
-  else seq.getField array, value
+    return utils.nth array, value
 
-seq.nth = (array, index) ->
+  if isConstructor value, String
+    return seq.getField array, value
 
-  if utils.isQuery index
-    index = index._run()
-
-  assertType index, Number
-  if index is -1
-    return array[array.length - 1]
-
-  if index < 0
-    throw Error "Cannot use an index < -1"
-
-  return array[index]
+  throw Error "Expected a Number or String!"
 
 seq.getField = (array, attr) ->
 
   if utils.isQuery attr
     attr = attr._run()
 
-  results = []
-
   assertType attr, String
-  array.forEach (value) ->
+  results = []
+  for value in array
     assertType value, Object
     if value.hasOwnProperty attr
       results.push value[attr]
-      return
+
+  return results
+
+seq.hasFields = (array, attrs) ->
+
+  for attr in attrs
+    assertType attr, String
+
+  results = []
+  for value in array
+    assertType value, Object
+    if hasFields value, attrs
+      results.push value
 
   return results
 
 # TODO: Support `offsetsOf` function argument
 seq.offsetsOf = (array, value) ->
 
-  if utils.isQuery value
-    value = value._run()
-
   if value is undefined
     throw Error "Argument 1 to offsetsOf may not be `undefined`"
+
+  if utils.isQuery value
+    value = value._run()
 
   if isConstructor value, Function
     throw Error "Function argument not yet implemented"
@@ -170,6 +172,11 @@ seq.slice = (array, args) ->
 #
 # Helpers
 #
+
+hasFields = (value, attrs) ->
+  for attr in attrs
+    return no unless value.hasOwnProperty attr
+  return yes
 
 # Objects with lesser values come first.
 # An undefined value is treated as less than any defined value.

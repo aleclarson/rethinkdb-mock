@@ -3,12 +3,12 @@ isConstructor = require "isConstructor"
 assertType = require "assertType"
 sliceArray = require "sliceArray"
 setType = require "setType"
-Either = require "Either"
 
 Selection = require "./Selection"
 Sequence = require "./Sequence"
 Datum = require "./Datum"
-uuid = require "./uuid"
+utils = require "./utils"
+uuid = require "./utils/uuid"
 
 {isArray} = Array
 
@@ -19,7 +19,7 @@ INSERT = i++
 DELETE = i++
 
 Table = (db, tableId, action) ->
-  self = (value) -> Sequence(self)._get value
+  self = (key) -> Sequence(self)._access key
   self._db = db
   self._tableId = tableId
   self._action = action if action
@@ -92,11 +92,20 @@ module.exports = Table
 
 insertRow = (table, row) ->
 
-  if row.id? and getRow table, row.id
-    return {errors: 1, first_error: "Duplicate primary key `id`"}
+  if hasId = row.hasOwnProperty "id"
+
+    if (row.id is null) or isConstructor(row.id, Object)
+      throw Error "Primary keys must be either a number, string, bool, pseudotype or array"
+
+    if getRow table, row.id
+      return {errors: 1, first_error: "Duplicate primary key `id`"}
+
+  for key, value of row
+    if value is undefined
+      throw Error "Object field '#{key}' may not be undefined"
 
   res = {inserted: 1}
-  unless row.id?
+  unless hasId
     row.id = uuid()
     res.generated_keys = [row.id]
 
@@ -109,18 +118,39 @@ deleteRows = (table) ->
   return {deleted: count}
 
 getRow = (table, id) ->
+
+  if id is undefined
+    throw Error "Argument 1 to get may not be `undefined`"
+
+  if utils.isQuery id
+    id = id._run()
+
+  if (id is null) or isConstructor(id, Object)
+    throw Error "Primary keys must be either a number, string, bool, pseudotype or array"
+
   row = table.find (row) -> row.id is id
   return row or null
 
 getRows = (table, args) ->
+
   return [] unless args.length
 
   if isConstructor args[args.length - 1], Object
     key = args.pop().index
 
-  argType = Either Number, String, Boolean, Array
   for arg, index in args
-    assertType arg, argType, "args[#{index}]"
+
+    if arg is undefined
+      throw Error "Argument #{index} to getAll may not be `undefined`"
+
+    if utils.isQuery arg
+      args[index] = arg._run()
+
+    if arg is null
+      throw Error "Keys cannot be NULL"
+
+    if isConstructor arg, Object
+      throw Error (if key is "id" then "Primary" else "Secondary") + " keys must be either a number, string, bool, pseudotype or array"
 
   key ?= "id"
   table.filter (row) ->

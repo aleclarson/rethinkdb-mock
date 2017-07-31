@@ -3,17 +3,15 @@ isType = require "isType"
 
 rethinkdb = require ".."
 Datum = require "../js/Datum"
-utils = require "../js/utils"
 
 db = rethinkdb()
-
-db.init users: []
 
 users = db.table "users"
 
 describe "sequence()", ->
 
   beforeAll ->
+    db.init users: []
     Promise.all [
       users.insert {id: 1, name: "Betsy", gender: "F"}
       users.insert {id: 2, name: "Sheila", gender: "F", preference: "M"}
@@ -30,8 +28,7 @@ describe "sequence()", ->
 
   it "can get a field from each row in the sequence", ->
     users("gender").then (res) ->
-      expected = ["F", "F", "M"]
-      expect(utils.equals(res, expected)).toBe true
+      expect(res).toEqual ["F", "F", "M"]
 
 # describe "sequence.do()", ->
 
@@ -45,13 +42,11 @@ describe "sequence.getField()", ->
 
   it "gets a field from each row in the sequence", ->
     users.getField("gender").then (res) ->
-      expected = ["F", "F", "M"]
-      expect(utils.equals(res, expected)).toBe true
+      expect(res).toEqual ["F", "F", "M"]
 
   it "ignores rows where the field is undefined", ->
     users.getField("preference").then (res) ->
-      expected = ["M", "F"]
-      expect(utils.equals(res, expected)).toBe true
+      expect(res).toEqual ["M", "F"]
 
 describe "sequence.offsetsOf()", ->
 
@@ -76,7 +71,7 @@ describe "sequence.update()", ->
   it "tracks how many rows were not updated", ->
     users.update {age: 23}
     .then (res) ->
-      expect(res.skipped).toBe db._tables.users.length
+      expect(res.unchanged).toBe db._tables.users.length
 
   # TODO: Test updating with nested queries.
   # it "works with nested queries", ->
@@ -90,52 +85,47 @@ describe "sequence.filter()", ->
     users.filter {gender: "F"}
     .then (res) ->
       res = res.map (row) -> row.name
-      expected = ["Betsy", "Sheila"]
-      expect(utils.equals(res, expected)).toBe true
+      expect(res).toEqual ["Betsy", "Sheila"]
 
 describe "sequence.orderBy()", ->
 
   it "sorts the sequence using the given key", ->
     users.orderBy("name").then (res) ->
       res = res.map (row) -> row.name
-      expected = ["Alec", "Betsy", "Sheila"]
-      expect(utils.equals(res, expected)).toBe true
+      expect(res).toEqual ["Alec", "Betsy", "Sheila"]
 
   # it "can sort using a sub-query", ->
+
+  # it "can sort in descending order", ->
 
 describe "sequence.limit()", ->
 
   it "limits the number of results", ->
     users.limit(2).then (res) ->
       res = res.map (row) -> row.id
-      expected = [1, 2]
-      expect(utils.equals(res, expected)).toBe true
+      expect(res).toEqual [1, 2]
 
 describe "sequence.slice()", ->
 
   it "returns a range of results", ->
     users.slice(1, 2).then (res) ->
       res = res.map (row) -> row.id
-      expected = [2]
-      expect(utils.equals(res, expected)).toBe true
+      expect(res).toEqual [2]
 
   it "supports a closed right bound", ->
     users.slice(1, 2, {rightBound: "closed"}).then (res) ->
       res = res.map (row) -> row.id
-      expected = [2, 3]
-      expect(utils.equals(res, expected)).toBe true
+      expect(res).toEqual [2, 3]
 
   it "supports an open left bound", ->
     users.slice(0, 2, {leftBound: "open"}).then (res) ->
       res = res.map (row) -> row.id
-      expected = [2]
-      expect(utils.equals(res, expected)).toBe true
+      expect(res).toEqual [2]
 
   it "ranges from the given index to the last index (when only one index is given)", ->
     users.slice(1).then (res) ->
       res = res.map (row) -> row.id
-      expected = [2, 3]
-      expect(utils.equals(res, expected)).toBe true
+      expect(res).toEqual [2, 3]
 
 describe "sequence.pluck()", ->
 

@@ -6,14 +6,14 @@ setType = require "setType"
 Selection = require "./Selection"
 Datum = require "./Datum"
 utils = require "./utils"
-seq = require "./utils/sequence"
+seq = require "./utils/seq"
 
 i = 1
-GET = i++
 NTH = i++
+ACCESS = i++
 GET_FIELD = i++
+HAS_FIELDS = i++
 OFFSETS_OF = i++
-UPDATE = i++
 FILTER = i++
 ORDER_BY = i++
 LIMIT = i++
@@ -21,12 +21,14 @@ SLICE = i++
 PLUCK = i++
 WITHOUT = i++
 FOLD = i++
+UPDATE = i++
 DELETE = i++
 
-Sequence = (query) ->
-  self = (value) -> self._get value
+Sequence = (query, action) ->
+  self = (key) -> self._access key
   self._db = query._db
   self._query = query
+  self._action = action if action
   return setType self, Sequence
 
 methods = Sequence.prototype
@@ -35,52 +37,48 @@ methods.do = (callback) ->
   return callback this
 
 methods.nth = (index) ->
-  @_action = [NTH, index]
-  return Selection this
+  self = Sequence this, [NTH, index]
+  return Selection self
 
 methods.getField = (attr) ->
-  @_action = [GET_FIELD, attr]
-  return Sequence this
+  return Sequence this, [GET_FIELD, attr]
+
+methods.hasFields = ->
+  return Sequence this, [HAS_FIELDS, sliceArray arguments]
 
 methods.offsetsOf = (value) ->
-  @_action = [OFFSETS_OF, value]
-  return Datum this
-
-methods.update = (value, options) ->
-  @_action = [UPDATE, value, options]
-  return Datum this
+  self = Sequence this, [OFFSETS_OF, value]
+  return Datum self
 
 methods.filter = ->
-  @_action = [FILTER, sliceArray arguments]
-  return Sequence this
+  return Sequence this, [FILTER, sliceArray arguments]
 
 methods.orderBy = ->
-  @_action = [ORDER_BY, sliceArray arguments]
-  return Sequence this
+  return Sequence this, [ORDER_BY, sliceArray arguments]
 
 methods.limit = (n) ->
-  @_action = [LIMIT, n]
-  return Sequence this
+  return Sequence this, [LIMIT, n]
 
 methods.slice = ->
-  @_action = [SLICE, sliceArray arguments]
-  return Sequence this
+  return Sequence this, [SLICE, sliceArray arguments]
 
 methods.pluck = ->
-  @_action = [PLUCK, sliceArray arguments]
-  return Sequence this
+  return Sequence this, [PLUCK, sliceArray arguments]
 
 methods.without = ->
-  @_action = [WITHOUT, sliceArray arguments]
-  return Sequence this
+  return Sequence this, [WITHOUT, sliceArray arguments]
 
 methods.fold = (value, iterator) ->
-  @_action = [FOLD, value, iterator]
-  return Datum this
+  self = Sequence this, [FOLD, value, iterator]
+  return Datum self
+
+methods.update = (value, options) ->
+  self = Sequence this, [UPDATE, value, options]
+  return Datum self
 
 methods.delete = ->
-  @_action = [DELETE]
-  return Datum this
+  self = Sequence this, [DELETE]
+  return Datum self
 
 methods.run = ->
   Promise.resolve()
@@ -89,9 +87,9 @@ methods.run = ->
 methods.then = (onFulfilled) ->
   @run().then onFulfilled
 
-methods._get = (value) ->
-  @_action = [GET, value]
-  return Datum this
+methods._access = (key) ->
+  self = Sequence this, [ACCESS, key]
+  return Datum self
 
 methods._run = (context = {}) ->
   Object.assign context, @_context
@@ -103,20 +101,20 @@ methods._run = (context = {}) ->
 
   switch action[0]
 
-    when GET
-      return seq.access rows, action[1]
-
     when NTH
-      return seq.nth rows, action[1]
+      return utils.nth rows, action[1]
+
+    when ACCESS
+      return seq.access rows, action[1]
 
     when GET_FIELD
       return seq.getField rows, action[1]
 
+    when HAS_FIELDS
+      return seq.hasFields rows, action[1]
+
     when OFFSETS_OF
       return seq.offsetsOf rows, action[1]
-
-    when UPDATE
-      return updateRows rows, action[1], action[2]
 
     when FILTER
       return seq.filter rows, action[1]
@@ -138,6 +136,9 @@ methods._run = (context = {}) ->
     #
     # when FOLD
 
+    when UPDATE
+      return updateRows rows, action[1], action[2]
+
     when DELETE
       return deleteRows @_db, context.tableId, rows
 
@@ -147,26 +148,6 @@ module.exports = Sequence
 # Helpers
 #
 
-updateRows = (rows, patch, options) ->
-  # TODO: Throw an error if not an array of rows.
-
-  if utils.isQuery patch
-    patch = patch._run()
-
-  if utils.isQuery options
-    options = options._run()
-
-  options ?= {}
-
-  assertType patch, Object
-  assertType options, Object
-
-  # TODO: Track which rows are not modified.
-  for row in rows
-    utils.merge row, patch
-
-  return {replaced: rows.length}
-
 arrayPluck = (rows, args) ->
   rows.map (row) ->
     utils.pluck row, args
@@ -175,17 +156,44 @@ arrayWithout = (rows, args) ->
   rows.map (row) ->
     utils.without row, args
 
+updateRows = (rows, values, options) ->
+  # TODO: Throw an error if not an array of rows.
+
+  if utils.isQuery values
+    values = values._run()
+    assertType values, Object
+
+  else
+    assertType values, Object
+    utils.runQueries values
+
+  if utils.isQuery options
+    options = options._run()
+    assertType options, Object
+
+  else if options?
+    assertType options, Object
+    utils.runQueries options
+
+  else options = {}
+
+  replaced = 0
+  for row in rows
+    if utils.update row, values
+      replaced += 1
+
+  return {replaced, unchanged: rows.length - replaced}
+
 deleteRows = (db, tableId, rows) ->
   assertType tableId, String
   # TODO: Throw an error if not an array of rows.
 
-  count = 0
-  table = db._tables[tableId]
-  table = table.filter (row) ->
-    if ~rows.indexOf row
-      count += 1
-      return no
-    return yes
+  deleted = 0
+  db._tables[tableId] =
+    db._tables[tableId].filter (row) ->
+      if ~rows.indexOf row
+        deleted += 1
+        return no
+      return yes
 
-  db._tables[tableId] = table
-  return {deleted: count}
+  return {deleted}

@@ -5,11 +5,12 @@ rethinkdb = require ".."
 
 db = rethinkdb()
 
-db.init users: []
-
 users = db.table "users"
 
 describe "db.table().insert()", ->
+
+  beforeAll ->
+    db.init users: []
 
   it "appends a row", ->
     users.insert {id: 1}
@@ -50,6 +51,8 @@ describe "db.table().get()", ->
     .then (res) ->
       expect(res).toBe null
 
+  # it "supports sub-queries", ->
+
 describe "db.table().getAll()", ->
 
   beforeAll ->
@@ -67,6 +70,10 @@ describe "db.table().getAll()", ->
     users.getAll 5, {index: "friendCount"}
     .then (res) ->
       expect(res.length).toBe 2
+
+  # it "supports sub-queries", ->
+
+  # it "can match an array", ->
 
 describe "db.table()", ->
 

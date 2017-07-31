@@ -7,8 +7,90 @@ sliceArray = require "sliceArray"
 
 utils = exports
 
-# TODO: Support sub-queries.
+utils.isQuery = (queryTypes, value) ->
+  return no unless value
+  return yes if ~queryTypes.indexOf value.constructor
+  return no
+
+utils.runQueries = (values) ->
+
+  if isArray
+    for value, index in values
+      if utils.isQuery value
+        values[index] = value._run()
+      else if isArrayOrObject value
+        utils.runQueries value
+    return values
+
+  for key, value of values
+    if utils.isQuery value
+      values[key] = value._run()
+    else if isArrayOrObject value
+      utils.runQueries value
+  return values
+
+# TODO: Prevent indexes less than -1 for streams.
+utils.nth = (array, index) ->
+  assertType array, Array
+
+  if utils.isQuery index
+    index = index._run()
+
+  assertType index, Number
+
+  if index < 0
+    index = array.length + index
+
+  if index < 0 or index >= array.length
+    throw Error "Index out of bounds"
+
+  return array[index]
+
+utils.access = (value, key) ->
+
+  if utils.isQuery key
+    key = key._run()
+
+  if isConstructor key, String
+    return utils.getField value, key
+
+  if isConstructor key, Number
+    return utils.nth value, key
+
+  throw Error "Expected a Number or String!"
+
+utils.getField = (value, attr) ->
+
+  if utils.isQuery attr
+    attr = attr._run()
+
+  assertType attr, String
+  unless value.hasOwnProperty attr
+    throw Error "No attribute `#{attr}` in object"
+
+  return value[attr]
+
+utils.hasFields = (value, attrs) ->
+
+  for attr, index in attrs
+
+    if attr is undefined
+      throw Error "Argument #{index} to hasFields may not be `undefined`"
+
+    unless isConstructor attr, String
+      throw Error "Invalid path argument"
+
+    return no unless value.hasOwnProperty attr
+  return yes
+
+# TODO: Support sub-queries nested in an array or object.
 utils.equals = (value1, value2) ->
+
+  if utils.isQuery value2
+    value2 = value2._run()
+
+  else if isArrayOrObject value2
+    utils.runQueries value2
 
   if isArray value1
     return no unless isArray value2
@@ -40,61 +122,69 @@ utils.pluck = (input, keys) ->
 utils.without = (input, keys) ->
   assertType input, Object
   assertType keys, Array
+  keys = utils.flatten keys
   output = {}
   for key, value of input
     unless ~keys.indexOf key
       output[key] = value
   return output
 
-# TODO: Track if the output wasn't modified.
-utils.merge = (output) ->
+utils.merge = (output, inputs) ->
   assertType output, Object
-  inputs = sliceArray arguments, 1
-  for input, index in inputs
+  assertType inputs, Array
+
+  for input in inputs
+
+    if input is undefined
+      throw Error "Argument to merge may not be `undefined`"
 
     if utils.isQuery input
       input = input._run()
 
-    if input is undefined
-      throw Error "Argument #{index} to merge may not be `undefined`"
+    else if isArrayOrObject input
+      utils.runQueries input
 
-    # Non-objects overwrite the output.
-    unless isConstructor input, Object
+    output = merge output, input
 
-      # Avoid mapping the array if not the last input.
-      if isArray(input) and (index is inputs.length - 1)
-        output = input.map (value) ->
-          return value._run() if utils.isQuery value
-          return value
+  return output unless isArray output
+  return output.map (value) ->
+    return value._run() if utils.isQuery value
+    return value unless isArrayOrObject value
+    return utils.runQueries value
 
-      else output = input
-      continue
+# Returns true if the `patch` changed at least one value.
+utils.update = (object, patch) ->
 
-    # Ensure the output is an object before merging.
-    output = {} unless isConstructor output, Object
+  if patch.hasOwnProperty "id"
+    if patch.id isnt object.id
+      throw Error "Primary key `id` cannot be changed"
 
-    for key, value of input
+  return !!update object, patch
 
-      if utils.isQuery value
-        value = value._run()
+# Replicate an object or array (a simpler alternative to `utils.merge`)
+utils.clone = (values) ->
 
-      if value is undefined
-        throw Error "Object field '#{key}' may not be undefined"
+  if isArray values
+    return values.map (value) ->
+      if isArrayOrObject value
+      then utils.clone value
+      else value
 
-      unless isConstructor value, Object
-        output[key] = value
+  clone = {}
+  for key, value of values
+    clone[key] =
+      if isArrayOrObject value
+      then utils.clone value
+      else value
 
-      else unless isConstructor output[key], Object
-        output[key] = utils.merge {}, value
-
-      else
-        utils.merge output[key], value
-
-  return output
+  return clone
 
 #
 # Helpers
 #
+
+isArrayOrObject = (value) ->
+  isArray(value) or isConstructor(value, Object)
 
 arrayEquals = (array1, array2) ->
   return no if array1.length isnt array2.length
@@ -148,3 +238,65 @@ pluckWithObject = (object, input, output) ->
     else throw TypeError "Invalid path argument"
 
   return output
+
+merge = (output, input) ->
+
+  # Non-objects overwrite the output.
+  return input unless isConstructor input, Object
+
+  # Ensure the output is an object before merging.
+  output = {} unless isConstructor output, Object
+
+  for key, value of input
+
+    if value is undefined
+      throw Error "Object field '#{key}' may not be undefined"
+
+    if utils.isQuery value
+      value = value._run()
+
+    else if isArrayOrObject value
+      utils.runQueries value
+
+    output[key] =
+      if isConstructor output[key], Object
+      then merge output[key], value
+      else value
+
+  return output
+
+update = (output, input) ->
+  changes = 0
+  for key, value of input
+
+    if value is undefined
+      throw Error "Object field '#{key}' may not be undefined"
+
+    if utils.isQuery value
+      value = value._run()
+
+    else if isArrayOrObject value
+      utils.runQueries value
+
+    if isConstructor value, Object
+
+      unless isConstructor output[key], Object
+        changes += 1
+        output[key] = utils.clone value
+        continue
+
+      changes += update output[key], value
+
+    else if isArray value
+
+      if isArray output[key]
+        continue if arrayEquals value, output[key]
+
+      changes += 1
+      output[key] = utils.clone value
+
+    else if value isnt output[key]
+      changes += 1
+      output[key] = value
+
+  return changes

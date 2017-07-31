@@ -1,17 +1,23 @@
+# Utilities for table rows
 
 assertType = require "assertType"
 
 utils = require "."
 
-sel = exports
+row = exports
 
-sel.replace = (db, tableId, rowId, values) ->
-
-  if utils.isQuery values
-    values = values._run()
+row.replace = (db, tableId, rowId, values) ->
 
   if values is undefined
     throw Error "Argument 1 to replace may not be `undefined`"
+
+  if utils.isQuery values
+    values = values._run()
+    assertType values, Object
+
+  else
+    assertType values, Object
+    utils.runQueries values
 
   table = db._tables[tableId]
   index = indexOf table, rowId
@@ -32,23 +38,25 @@ sel.replace = (db, tableId, rowId, values) ->
   table[index] = values
   return {replaced: 1}
 
-sel.update = (row, values) ->
+row.update = (row, values) ->
 
   unless row
     return {skipped: 1}
 
   if utils.isQuery values
     values = values._run()
+    assertType values, Object
 
-  assertType values, Object
-  if values.hasOwnProperty "id"
-    if values.id isnt row.id
-      throw Error "Primary key `id` cannot be changed"
+  else
+    assertType values, Object
+    utils.runQueries values
 
-  utils.merge row, values
-  return {replaced: 1}
+  if utils.update row, values
+    return {replaced: 1}
 
-sel.delete = (db, tableId, row) ->
+  return {unchanged: 1}
+
+row.delete = (db, tableId, row) ->
   assertType tableId, String
 
   unless row

@@ -3,13 +3,12 @@ rethinkdb = require ".."
 
 db = rethinkdb()
 
-db.init users: []
-
 users = db.table "users"
 
 describe "selection.replace()", ->
 
   beforeAll ->
+    db.init users: []
     users.insert {id: 1, name: "Alec"}
 
   it "replaces an entire row", ->
@@ -53,6 +52,15 @@ describe "selection.update()", ->
     users.get(1).update {id: 2, name: "Jeff"}
     .run().catch (error) ->
       expect(error.message).toBe "Primary key `id` cannot be changed"
+
+describe "selection.merge()", ->
+
+  it "merges an object into the result (without updating the row)", ->
+    user1 = users.get 1
+    user1.merge {age: 23}
+    .then (res) ->
+      expect(res.age).toBe 23
+      expect(user1._run().age).toBe undefined
 
 describe "selection.delete()", ->
 
