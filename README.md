@@ -1,5 +1,5 @@
 
-# rethinkdb-mock v0.0.1
+# rethinkdb-mock v0.1.0
 
 An in-memory RethinkDB used for testing.
 
