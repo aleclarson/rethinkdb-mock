@@ -85,6 +85,8 @@ describe "utils.pluck()", ->
     output = utils.pluck input, [['a']]
     expect(output.a).toBe 1
 
+  # it "supports nested queries", ->
+
   describe "key mapping", ->
 
     it "uses an object to pluck keys", ->
@@ -128,6 +130,10 @@ describe "utils.without()", ->
     expect(output.b).toBe 2
     expect(output.hasOwnProperty('a')).toBe false
     expect(output.hasOwnProperty('c')).toBe false
+
+  # it "supports nested objects", ->
+
+  # it "supports nested queries", ->
 
 describe "utils.merge()", ->
 

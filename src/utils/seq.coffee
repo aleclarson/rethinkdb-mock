@@ -66,37 +66,33 @@ seq.offsetsOf = (array, value) ->
     offsets.push index if utils.equals value2, value
   return offsets
 
-seq.filter = (array, args) ->
-  utils.runQueries args
+seq.filter = (array, filter, options) ->
 
-  if args[0] is undefined
+  if filter is undefined
     throw Error "Argument 1 to filter may not be `undefined`"
 
-  if args.length > 1
-    assertType options = args[1], Object
+  if utils.isQuery filter
+    filter = filter._run()
+
+  if options isnt undefined
+    assertType options, Object
     # TODO: Support `default` option
     # TODO: Support sub-queries in the `options` object.
 
   matchers = []
-  if isConstructor args[0], Object
+  if isConstructor filter, Object
 
     matchers.push (values) ->
       assertType values, Object
       return yes
 
-    # TODO: Support nested objects.
-    Object.keys(args[0]).forEach (key) ->
-      value = args[0][key]
-
-      if utils.isQuery value
-        value = value._run()
-
+    Object.keys(filter).forEach (key) ->
+      value = utils.resolve filter[key]
       matchers.push (values) ->
-        return values[key] is value
+        utils.equals values[key], value
 
   # TODO: Support function argument
-  else if isConstructor args[0], Function
-    # NOTE: May want to call function before this query runs.
+  else if isConstructor filter, Function
     throw Error "Filter functions are not implemented yet"
 
   # The native API returns the sequence when
@@ -110,16 +106,20 @@ seq.filter = (array, args) ->
 
 # TODO: Support sorting by an array/object value.
 # TODO: Support `orderBy` function argument
-seq.sort = (array, args) ->
-  utils.runQueries args
+seq.sort = (array, value) ->
 
-  if isArray args[0]
-    sort = args[0][0]
-    key = args[0][1]
+  if value is undefined
+    throw Error "Argument 1 to orderBy may not be `undefined`"
 
-  else if isConstructor args[0], String
+  if utils.isQuery value
+    value = value._run()
+
+  if isArray value
+    [sort, key] = value
+
+  else if isConstructor value, String
     sort = "asc"
-    key = args[0]
+    key = value
 
   if sort is "asc"
     sorter = sortAscending key
@@ -145,11 +145,11 @@ seq.limit = (array, n) ->
 
 # TODO: Throw error for negative indexes on a "stream".
 seq.slice = (array, args) ->
-  utils.runQueries args
 
   if (args.length < 1) or (args.length > 3)
     throw Error "Expected between 1 and 3 arguments but found #{args.length}"
 
+  args = utils.resolve args
   options =
     if isConstructor args[args.length - 1], Object
     then args.pop()
@@ -168,6 +168,14 @@ seq.slice = (array, args) ->
     endIndex += 1
 
   return array.slice startIndex, endIndex
+
+seq.pluck = (rows, args) ->
+  rows.map (row) ->
+    utils.pluck row, args
+
+seq.without = (rows, args) ->
+  rows.map (row) ->
+    utils.without row, args
 
 #
 # Helpers

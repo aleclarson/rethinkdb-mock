@@ -14,8 +14,9 @@ ACCESS = i++
 GET_FIELD = i++
 HAS_FIELDS = i++
 OFFSETS_OF = i++
-FILTER = i++
 ORDER_BY = i++
+FILTER = i++
+COUNT = i++
 LIMIT = i++
 SLICE = i++
 PLUCK = i++
@@ -50,11 +51,15 @@ methods.offsetsOf = (value) ->
   self = Sequence this, [OFFSETS_OF, value]
   return Datum self
 
-methods.filter = ->
-  return Sequence this, [FILTER, sliceArray arguments]
+methods.orderBy = (value) ->
+  return Sequence this, [ORDER_BY, value]
 
-methods.orderBy = ->
-  return Sequence this, [ORDER_BY, sliceArray arguments]
+methods.filter = (filter, options) ->
+  return Sequence this, [FILTER, filter, options]
+
+methods.count = ->
+  self = Sequence this, [COUNT]
+  return Datum self
 
 methods.limit = (n) ->
   return Sequence this, [LIMIT, n]
@@ -117,10 +122,13 @@ methods._run = (context = {}) ->
       return seq.offsetsOf rows, action[1]
 
     when FILTER
-      return seq.filter rows, action[1]
+      return seq.filter rows, action[1], action[2]
 
     when ORDER_BY
       return seq.sort rows, action[1]
+
+    when COUNT
+      return rows.length
 
     when LIMIT
       return seq.limit rows, action[1]
@@ -129,10 +137,10 @@ methods._run = (context = {}) ->
       return seq.slice rows, action[1]
 
     when PLUCK
-      return arrayPluck rows, action[1]
+      return seq.pluck rows, action[1]
 
     when WITHOUT
-      return arrayWithout rows, action[1]
+      return seq.without rows, action[1]
     #
     # when FOLD
 
@@ -148,14 +156,6 @@ module.exports = Sequence
 # Helpers
 #
 
-arrayPluck = (rows, args) ->
-  rows.map (row) ->
-    utils.pluck row, args
-
-arrayWithout = (rows, args) ->
-  rows.map (row) ->
-    utils.without row, args
-
 updateRows = (rows, values, options) ->
   # TODO: Throw an error if not an array of rows.
 
@@ -165,7 +165,7 @@ updateRows = (rows, values, options) ->
 
   else
     assertType values, Object
-    utils.runQueries values
+    values = utils.resolve values
 
   if utils.isQuery options
     options = options._run()
@@ -173,7 +173,7 @@ updateRows = (rows, values, options) ->
 
   else if options?
     assertType options, Object
-    utils.runQueries options
+    options = utils.resolve options
 
   else options = {}
 

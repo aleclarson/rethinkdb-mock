@@ -35,10 +35,9 @@ methods.getAll = ->
   self = Table @_db, @_tableId, [GET_ALL, sliceArray arguments]
   return Sequence self
 
-# TODO: Support inserting multiple rows.
 # TODO: Support options argument.
-methods.insert = (row) ->
-  self = Table @_db, @_tableId, [INSERT, row]
+methods.insert = (value, options) ->
+  self = Table @_db, @_tableId, [INSERT, value, options]
   return Datum self
 
 methods.delete = ->
@@ -55,7 +54,7 @@ do ->
 methods.run = ->
   Promise.resolve().then =>
     return @_run() if @_action
-    return @_run().slice()
+    return utils.clone @_run()
 
 methods.then = (onFulfilled) ->
   @run().then onFulfilled
@@ -73,10 +72,10 @@ methods._run = (context) ->
   switch action[0]
 
     when INSERT
-      return insertRow table, action[1]
+      return insertRows table, action[1], action[2]
 
     when DELETE
-      return deleteRows table
+      return clearTable table
 
     when GET
       return getRow table, action[1]
@@ -90,29 +89,39 @@ module.exports = Table
 # Helpers
 #
 
-insertRow = (table, row) ->
+insertRows = (table, rows) ->
+  rows = utils.resolve rows
+  rows = [rows] unless isArray rows
 
-  if hasId = row.hasOwnProperty "id"
+  errors = 0
+  generated_keys = []
 
-    if (row.id is null) or isConstructor(row.id, Object)
-      throw Error "Primary keys must be either a number, string, bool, pseudotype or array"
+  for row in rows
+    assertType row, Object
 
-    if getRow table, row.id
-      return {errors: 1, first_error: "Duplicate primary key `id`"}
+    # Check for duplicate primary keys.
+    if row.hasOwnProperty "id"
+      if getRow table, row.id
+      then errors += 1
+      else table.push row
 
-  for key, value of row
-    if value is undefined
-      throw Error "Object field '#{key}' may not be undefined"
+    # Generate an `id` for rows without one.
+    else
+      generated_keys.push row.id = uuid()
+      table.push row
 
-  res = {inserted: 1}
-  unless hasId
-    row.id = uuid()
-    res.generated_keys = [row.id]
+  res =
+    if errors > 0
+    then {errors, first_error: "Duplicate primary key `id`"}
+    else {}
 
-  table.push row
+  res.inserted = rows.length - errors
+  if generated_keys.length
+    res.generated_keys = generated_keys
+
   return res
 
-deleteRows = (table) ->
+clearTable = (table) ->
   count = table.length
   table.length = 0
   return {deleted: count}

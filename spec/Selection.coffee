@@ -31,12 +31,20 @@ describe "selection.replace()", ->
     .run().catch (error) ->
       expect(error.message).toBe "Primary key `id` cannot be changed"
 
+  it "deletes the row if the replacement is null", ->
+    users.insert {id: 2, name: "Colin"}
+    .then -> users.get(2).replace null
+    .then (res) ->
+      expect(res.deleted).toBe 1
+      expect(users.get(2)._run()).toBe null
+
 describe "selection.update()", ->
 
   it "merges an object into an existing row", ->
     users.get(1).update {online: true}
     .then (res) ->
-      expect(res.replaced).toBe 1
+      expect(1).toBe res.replaced
+      expect(true).toBe users.get(1)._run().online
 
   it "knows if the row has not changed", ->
     users.get(1).update {online: true}

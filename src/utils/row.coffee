@@ -13,11 +13,12 @@ row.replace = (db, tableId, rowId, values) ->
 
   if utils.isQuery values
     values = values._run()
-    assertType values, Object
+    if values isnt null
+      assertType values, Object
 
-  else
+  else if values isnt null
     assertType values, Object
-    utils.runQueries values
+    values = utils.resolve values
 
   table = db._tables[tableId]
   index = indexOf table, rowId
@@ -40,18 +41,22 @@ row.replace = (db, tableId, rowId, values) ->
 
 row.update = (row, values) ->
 
+  if values is undefined
+    throw Error "Argument 1 to update may not be `undefined`"
+
   unless row
     return {skipped: 1}
 
   if utils.isQuery values
     values = values._run()
-    assertType values, Object
+    if values isnt null
+      assertType values, Object
 
-  else
+  else if values isnt null
     assertType values, Object
-    utils.runQueries values
+    values = utils.resolve values
 
-  if utils.update row, values
+  if values and utils.update row, values
     return {replaced: 1}
 
   return {unchanged: 1}

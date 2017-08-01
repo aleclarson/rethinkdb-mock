@@ -36,7 +36,8 @@ describe "sequence.nth()", ->
 
   it "gets the nth row in the sequence", ->
     users.nth(1).then (res) ->
-      expect(res).toBe db._tables.users[1]
+      expect(res).not.toBe db._tables.users[1]
+      expect(res.id).toBe 2
 
 describe "sequence.getField()", ->
 
@@ -87,6 +88,12 @@ describe "sequence.filter()", ->
       res = res.map (row) -> row.name
       expect(res).toEqual ["Betsy", "Sheila"]
 
+  # it "supports nested objects", ->
+
+  # it "supports nested arrays", ->
+
+  # it "supports nested queries", ->
+
 describe "sequence.orderBy()", ->
 
   it "sorts the sequence using the given key", ->
@@ -129,7 +136,23 @@ describe "sequence.slice()", ->
 
 describe "sequence.pluck()", ->
 
+  it "plucks keys from each result", ->
+    users.pluck "name", "gender"
+    .then (users) ->
+      expect(users.length).toBe db._tables.users.length
+      for user in users
+        expect(Object.keys user).toEqual ["name", "gender"]
+      return
+
 describe "sequence.without()", ->
+
+  it "excludes keys from each result", ->
+    users.without "id", "age", "preference"
+    .then (users) ->
+      expect(users.length).toBe db._tables.users.length
+      for user in users
+        expect(Object.keys user).toEqual ["name", "gender"]
+      return
 
 describe "sequence.fold()", ->
 

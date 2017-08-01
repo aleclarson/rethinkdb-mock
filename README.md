@@ -76,7 +76,7 @@ Be advised that anything on this list may not support specific use cases yet.
 - Nesting queries (most of the time)
 
 - `Database` methods
-  - `table`, `object`, `desc`, `uuid`
+  - `table`, `expr`, `object`, `desc`, `uuid`
 
 - `Table` methods
   - `insert`, `get`, `getAll`, `delete`
@@ -97,6 +97,10 @@ Be advised that anything on this list may not support specific use cases yet.
 This list may not be exhaustive and will be updated accordingly.
 
 - `r.row`
+
+- Changefeeds
+
+- Table creation, deletion, or indexing
 
 - Writing data
   - `sync`
@@ -129,7 +133,7 @@ This list may not be exhaustive and will be updated accordingly.
   - `mul`, `div`, `mod`, `and`, `or`, `not`, `random`, `round`, `ceil`, `floor`
 
 - Control structures
-  - `do`, `args`, `expr`, `branch`, `binary`, `forEach`, `range`, `error`, `js`, `coerceTo`, `typeOf`, `info`, `json`, `toJSON`, `http`
+  - `do`, `args`, `branch`, `binary`, `forEach`, `range`, `error`, `js`, `coerceTo`, `typeOf`, `info`, `json`, `toJSON`, `http`
 
 - Date/time methods
 

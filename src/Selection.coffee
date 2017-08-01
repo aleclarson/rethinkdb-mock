@@ -29,6 +29,11 @@ Selection = (query, action) ->
 
 methods = Selection.prototype
 
+methods.default = (value) ->
+  self = Datum this
+  self._context = {default: value}
+  return self
+
 methods.do = (callback) ->
   return callback this
 
@@ -40,21 +45,16 @@ methods.ne = (value) ->
   self = Selection @_query, [NE, value]
   return Datum self
 
-methods.merge = ->
-  self = Selection @_query, [MERGE, sliceArray arguments]
-  return Datum self
-
-methods.default = (value) ->
-  self = Datum @_query
-  self._context = {default: value}
-  return self
-
 methods.getField = (attr) ->
   self = Selection @_query, [GET_FIELD, attr]
   return Datum self
 
 methods.hasFields = ->
   self = Selection @_query, [HAS_FIELDS, sliceArray arguments]
+  return Datum self
+
+methods.merge = ->
+  self = Selection @_query, [MERGE, sliceArray arguments]
   return Datum self
 
 methods.without = ->
@@ -93,7 +93,7 @@ methods._run = (context = {}) ->
   result = @_query._run context
 
   unless action = @_action
-    return result
+    return utils.clone result
 
   switch action[0]
 

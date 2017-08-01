@@ -12,23 +12,6 @@ utils.isQuery = (queryTypes, value) ->
   return yes if ~queryTypes.indexOf value.constructor
   return no
 
-utils.runQueries = (values) ->
-
-  if isArray
-    for value, index in values
-      if utils.isQuery value
-        values[index] = value._run()
-      else if isArrayOrObject value
-        utils.runQueries value
-    return values
-
-  for key, value of values
-    if utils.isQuery value
-      values[key] = value._run()
-    else if isArrayOrObject value
-      utils.runQueries value
-  return values
-
 # TODO: Prevent indexes less than -1 for streams.
 utils.nth = (array, index) ->
   assertType array, Array
@@ -83,14 +66,8 @@ utils.hasFields = (value, attrs) ->
     return no unless value.hasOwnProperty attr
   return yes
 
-# TODO: Support sub-queries nested in an array or object.
 utils.equals = (value1, value2) ->
-
-  if utils.isQuery value2
-    value2 = value2._run()
-
-  else if isArrayOrObject value2
-    utils.runQueries value2
+  value2 = utils.resolve value2
 
   if isArray value1
     return no unless isArray value2
@@ -138,19 +115,12 @@ utils.merge = (output, inputs) ->
     if input is undefined
       throw Error "Argument to merge may not be `undefined`"
 
-    if utils.isQuery input
-      input = input._run()
-
-    else if isArrayOrObject input
-      utils.runQueries input
-
+    input = utils.resolve input
     output = merge output, input
 
   return output unless isArray output
   return output.map (value) ->
-    return value._run() if utils.isQuery value
-    return value unless isArrayOrObject value
-    return utils.runQueries value
+    utils.resolve value
 
 # Returns true if the `patch` changed at least one value.
 utils.update = (object, patch) ->
@@ -163,6 +133,9 @@ utils.update = (object, patch) ->
 
 # Replicate an object or array (a simpler alternative to `utils.merge`)
 utils.clone = (values) ->
+
+  if values is null
+    return null
 
   if isArray values
     return values.map (value) ->
@@ -178,6 +151,17 @@ utils.clone = (values) ->
       else value
 
   return clone
+
+# Resolves any queries found in a value.
+# Throws an error for undefined values.
+utils.resolve = (value) ->
+  if isArray value
+    return resolveArray value
+  if isConstructor value, Object
+    return resolveObject value
+  if utils.isQuery value
+    return value._run()
+  return value
 
 #
 # Helpers
@@ -239,6 +223,7 @@ pluckWithObject = (object, input, output) ->
 
   return output
 
+# NOTE: Nested queries must be resolved before calling this function.
 merge = (output, input) ->
 
   # Non-objects overwrite the output.
@@ -248,16 +233,6 @@ merge = (output, input) ->
   output = {} unless isConstructor output, Object
 
   for key, value of input
-
-    if value is undefined
-      throw Error "Object field '#{key}' may not be undefined"
-
-    if utils.isQuery value
-      value = value._run()
-
-    else if isArrayOrObject value
-      utils.runQueries value
-
     output[key] =
       if isConstructor output[key], Object
       then merge output[key], value
@@ -265,18 +240,10 @@ merge = (output, input) ->
 
   return output
 
+# NOTE: Nested queries must be resolved before calling this function.
 update = (output, input) ->
   changes = 0
   for key, value of input
-
-    if value is undefined
-      throw Error "Object field '#{key}' may not be undefined"
-
-    if utils.isQuery value
-      value = value._run()
-
-    else if isArrayOrObject value
-      utils.runQueries value
 
     if isConstructor value, Object
 
@@ -300,3 +267,43 @@ update = (output, input) ->
       output[key] = value
 
   return changes
+
+resolveArray = (values) ->
+  clone = []
+  for value, index in values
+
+    if value is undefined
+      throw Error "Cannot wrap undefined with r.expr()"
+
+    if isArray value
+      clone.push resolveArray value
+
+    else if isConstructor value, Object
+      clone.push resolveObject value
+
+    else if utils.isQuery value
+      clone.push value._run()
+
+    else clone.push value
+
+  return clone
+
+resolveObject = (values) ->
+  clone = {}
+  for key, value of values
+
+    if value is undefined
+      throw Error "Object field '#{key}' may not be undefined"
+
+    if isArray value
+      clone[key] = resolveArray value
+
+    else if isConstructor value, Object
+      clone[key] = resolveObject value
+
+    else if utils.isQuery value
+      clone[key] = value._run()
+
+    else clone[key] = value
+
+  return clone
