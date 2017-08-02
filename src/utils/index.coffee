@@ -12,35 +12,29 @@ utils.isQuery = (queryTypes, value) ->
   return yes if ~queryTypes.indexOf value.constructor
   return no
 
-# TODO: Prevent indexes less than -1 for streams.
-utils.nth = (array, index) ->
-  assertType array, Array
+# TODO: Support variadic arguments.
+utils.do = (self, callback) ->
+  query = callback self
 
-  if utils.isQuery index
-    index = index._run()
+  if query is undefined
+    throw Error "Return value may not be `undefined`"
 
-  assertType index, Number
+  unless utils.isQuery query
+    query = self._db.expr query
 
-  if index < 0
-    index = array.length + index
+  input = undefined
+  getInput = ->
+    return input if input isnt undefined
+    return input = self._query._run()
 
-  if index < 0 or index >= array.length
-    throw Error "Index out of bounds"
+  self._run = run = ->
+    self._run = getInput
+    output = query._run()
+    input = undefined
+    self._run = run
+    return output
 
-  return array[index]
-
-utils.access = (value, key) ->
-
-  if utils.isQuery key
-    key = key._run()
-
-  if isConstructor key, String
-    return utils.getField value, key
-
-  if isConstructor key, Number
-    return utils.nth value, key
-
-  throw Error "Expected a Number or String!"
+  return self
 
 utils.getField = (value, attr) ->
 
@@ -110,17 +104,13 @@ utils.merge = (output, inputs) ->
   assertType output, Object
   assertType inputs, Array
 
+  output = utils.clone output
   for input in inputs
-
-    if input is undefined
-      throw Error "Argument to merge may not be `undefined`"
-
-    input = utils.resolve input
     output = merge output, input
 
-  return output unless isArray output
-  return output.map (value) ->
-    utils.resolve value
+  if isArray output
+    return utils.resolve output
+  return output
 
 # Returns true if the `patch` changed at least one value.
 utils.update = (object, patch) ->

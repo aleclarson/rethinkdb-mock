@@ -15,12 +15,28 @@ seq.access = (array, value) ->
     value = value._run()
 
   if isConstructor value, Number
-    return utils.nth array, value
+    return seq.nth array, value
 
   if isConstructor value, String
     return seq.getField array, value
 
   throw Error "Expected a Number or String!"
+
+# TODO: Prevent indexes less than -1 for streams.
+seq.nth = (array, index) ->
+
+  if utils.isQuery index
+    index = index._run()
+
+  assertType index, Number
+
+  if index < 0
+    index = array.length + index
+
+  if index < 0 or index >= array.length
+    throw RangeError "Index out of bounds"
+
+  return array[index]
 
 seq.getField = (array, attr) ->
 

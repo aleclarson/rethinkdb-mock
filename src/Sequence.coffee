@@ -35,55 +35,49 @@ Sequence = (query, action) ->
 methods = Sequence.prototype
 
 methods.do = (callback) ->
-  return callback this
+  throw Error "Sequences must be coerced to arrays before calling `do`"
 
 methods.nth = (index) ->
-  self = Sequence this, [NTH, index]
-  return Selection self
+  Selection Sequence this, [NTH, index]
 
 methods.getField = (attr) ->
-  return Sequence this, [GET_FIELD, attr]
+  Sequence this, [GET_FIELD, attr]
 
 methods.hasFields = ->
-  return Sequence this, [HAS_FIELDS, sliceArray arguments]
+  Sequence this, [HAS_FIELDS, sliceArray arguments]
 
 methods.offsetsOf = (value) ->
-  self = Sequence this, [OFFSETS_OF, value]
-  return Datum self
+  Datum Sequence this, [OFFSETS_OF, value]
 
 methods.orderBy = (value) ->
-  return Sequence this, [ORDER_BY, value]
+  Sequence this, [ORDER_BY, value]
 
 methods.filter = (filter, options) ->
-  return Sequence this, [FILTER, filter, options]
+  Sequence this, [FILTER, filter, options]
 
 methods.count = ->
-  self = Sequence this, [COUNT]
-  return Datum self
+  Datum Sequence this, [COUNT]
 
 methods.limit = (n) ->
-  return Sequence this, [LIMIT, n]
+  Sequence this, [LIMIT, n]
 
 methods.slice = ->
-  return Sequence this, [SLICE, sliceArray arguments]
+  Sequence this, [SLICE, sliceArray arguments]
 
 methods.pluck = ->
-  return Sequence this, [PLUCK, sliceArray arguments]
+  Sequence this, [PLUCK, sliceArray arguments]
 
 methods.without = ->
-  return Sequence this, [WITHOUT, sliceArray arguments]
+  Sequence this, [WITHOUT, sliceArray arguments]
 
 methods.fold = (value, iterator) ->
-  self = Sequence this, [FOLD, value, iterator]
-  return Datum self
+  Datum Sequence this, [FOLD, value, iterator]
 
 methods.update = (value, options) ->
-  self = Sequence this, [UPDATE, value, options]
-  return Datum self
+  Datum Sequence this, [UPDATE, value, options]
 
 methods.delete = ->
-  self = Sequence this, [DELETE]
-  return Datum self
+  Datum Sequence this, [DELETE]
 
 methods.run = ->
   Promise.resolve()
@@ -93,8 +87,7 @@ methods.then = (onFulfilled) ->
   @run().then onFulfilled
 
 methods._access = (key) ->
-  self = Sequence this, [ACCESS, key]
-  return Datum self
+  Datum Sequence this, [ACCESS, key]
 
 methods._run = (context = {}) ->
   Object.assign context, @_context
@@ -107,7 +100,7 @@ methods._run = (context = {}) ->
   switch action[0]
 
     when NTH
-      return utils.nth rows, action[1]
+      return seq.nth rows, action[1]
 
     when ACCESS
       return seq.access rows, action[1]
@@ -141,8 +134,9 @@ methods._run = (context = {}) ->
 
     when WITHOUT
       return seq.without rows, action[1]
-    #
-    # when FOLD
+
+    when FOLD
+      return null # TODO: Implement `fold`
 
     when UPDATE
       return updateRows rows, action[1], action[2]

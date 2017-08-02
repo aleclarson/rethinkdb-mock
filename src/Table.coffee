@@ -27,29 +27,27 @@ Table = (db, tableId, action) ->
 
 methods = Table.prototype
 
+methods.do = (callback) ->
+  throw Error "Tables must be coerced to arrays before calling `do`"
+
 methods.get = (id) ->
-  self = Table @_db, @_tableId, [GET, id]
-  return Selection self
+  Selection Table @_db, @_tableId, [GET, id]
 
 methods.getAll = ->
-  self = Table @_db, @_tableId, [GET_ALL, sliceArray arguments]
-  return Sequence self
+  Sequence Table @_db, @_tableId, [GET_ALL, sliceArray arguments]
 
-# TODO: Support options argument.
 methods.insert = (value, options) ->
-  self = Table @_db, @_tableId, [INSERT, value, options]
-  return Datum self
+  Datum Table @_db, @_tableId, [INSERT, value, options]
 
 methods.delete = ->
-  self = Table @_db, @_tableId, [DELETE]
-  return Datum self
+  Datum Table @_db, @_tableId, [DELETE]
 
 do ->
-  keys = "do nth getField offsetsOf update filter orderBy limit slice pluck without fold".split " "
+  keys = "nth getField offsetsOf update filter orderBy limit slice pluck without fold".split " "
   keys.forEach (key) ->
     methods[key] = ->
       self = Sequence this
-      return self[key].apply self, arguments
+      self[key].apply self, arguments
 
 methods.run = ->
   Promise.resolve().then =>
@@ -71,60 +69,23 @@ methods._run = (context) ->
 
   switch action[0]
 
-    when INSERT
-      return insertRows table, action[1], action[2]
-
-    when DELETE
-      return clearTable table
-
     when GET
       return getRow table, action[1]
 
     when GET_ALL
       return getRows table, action[1]
 
+    when INSERT
+      return insertRows table, action[1], action[2]
+
+    when DELETE
+      return clearTable table
+
 module.exports = Table
 
 #
 # Helpers
 #
-
-insertRows = (table, rows) ->
-  rows = utils.resolve rows
-  rows = [rows] unless isArray rows
-
-  errors = 0
-  generated_keys = []
-
-  for row in rows
-    assertType row, Object
-
-    # Check for duplicate primary keys.
-    if row.hasOwnProperty "id"
-      if getRow table, row.id
-      then errors += 1
-      else table.push row
-
-    # Generate an `id` for rows without one.
-    else
-      generated_keys.push row.id = uuid()
-      table.push row
-
-  res =
-    if errors > 0
-    then {errors, first_error: "Duplicate primary key `id`"}
-    else {}
-
-  res.inserted = rows.length - errors
-  if generated_keys.length
-    res.generated_keys = generated_keys
-
-  return res
-
-clearTable = (table) ->
-  count = table.length
-  table.length = 0
-  return {deleted: count}
 
 getRow = (table, id) ->
 
@@ -147,7 +108,10 @@ getRows = (table, args) ->
   if isConstructor args[args.length - 1], Object
     key = args.pop().index
 
-  for arg, index in args
+  key ?= "id"
+  assertType key, String
+
+  args.forEach (arg, index) ->
 
     if arg is undefined
       throw Error "Argument #{index} to getAll may not be `undefined`"
@@ -161,7 +125,6 @@ getRows = (table, args) ->
     if isConstructor arg, Object
       throw Error (if key is "id" then "Primary" else "Secondary") + " keys must be either a number, string, bool, pseudotype or array"
 
-  key ?= "id"
   table.filter (row) ->
     for arg in args
       if isArray arg
@@ -169,3 +132,42 @@ getRows = (table, args) ->
       else if arg is row[key]
         return yes
     return no
+
+# TODO: Support options argument.
+insertRows = (table, rows) ->
+  rows = utils.resolve rows
+  rows = [rows] unless isArray rows
+
+  errors = 0
+  generated_keys = []
+
+  for row in rows
+    assertType row, Object
+
+    # Check for duplicate primary keys.
+    if row.hasOwnProperty "id"
+      if getRow table, row.id
+      then errors += 1
+      else table.push row
+
+    # Generate an `id` for rows without one.
+    else
+      generated_keys.push row.id = uuid()
+      table.push row
+
+  res = {errors}
+
+  if errors > 0
+    res.first_error = "Duplicate primary key `id`"
+
+  res.inserted = rows.length - errors
+
+  if generated_keys.length
+    res.generated_keys = generated_keys
+
+  return res
+
+clearTable = (table) ->
+  count = table.length
+  table.length = 0
+  return {deleted: count}

@@ -31,8 +31,9 @@ methods.tableDrop = (tableId) ->
 
 # TODO: You cannot have a sequence nested in an expression. You must use `coerceTo` first.
 methods.expr = (value) ->
-  return Datum _run: ->
-    utils.resolve value
+  return Datum
+    _db: this
+    _run: -> utils.resolve value
 
 methods.uuid = require "./utils/uuid"
 
@@ -43,8 +44,9 @@ methods.object = ->
   if args.length % 2
     throw Error "Expected an even number of arguments"
 
-  return Datum _run: ->
-    createObject args
+  return Datum
+    _db: this
+    _run: -> createObject args
 
 # TODO: Support `args`
 # methods.args = (array) -> array

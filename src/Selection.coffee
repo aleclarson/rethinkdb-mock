@@ -30,52 +30,42 @@ Selection = (query, action) ->
 methods = Selection.prototype
 
 methods.default = (value) ->
-  self = Datum this
+  self = Datum @_query
   self._context = {default: value}
   return self
 
 methods.do = (callback) ->
-  return callback this
+  utils.do Selection(@_query), callback
 
-methods.eq = (value) ->
-  self = Selection @_query, [EQ, value]
-  return Datum self
+methods.eq = ->
+  Datum Selection @_query, [EQ, sliceArray arguments]
 
-methods.ne = (value) ->
-  self = Selection @_query, [NE, value]
-  return Datum self
+methods.ne = ->
+  Datum Selection @_query, [NE, sliceArray arguments]
 
 methods.getField = (attr) ->
-  self = Selection @_query, [GET_FIELD, attr]
-  return Datum self
+  Datum Selection @_query, [GET_FIELD, attr]
 
 methods.hasFields = ->
-  self = Selection @_query, [HAS_FIELDS, sliceArray arguments]
-  return Datum self
+  Datum Selection @_query, [HAS_FIELDS, sliceArray arguments]
 
 methods.merge = ->
-  self = Selection @_query, [MERGE, sliceArray arguments]
-  return Datum self
+  Datum Selection @_query, [MERGE, sliceArray arguments]
 
 methods.without = ->
-  self = Selection @_query, [WITHOUT, sliceArray arguments]
-  return Datum self
+  Datum Selection @_query, [WITHOUT, sliceArray arguments]
 
 methods.pluck = ->
-  self = Selection @_query, [PLUCK, sliceArray arguments]
-  return Datum self
+  Datum Selection @_query, [PLUCK, sliceArray arguments]
 
 methods.replace = (values) ->
-  self = Selection @_query, [REPLACE, values]
-  return Datum self
+  Datum Selection @_query, [REPLACE, values]
 
 methods.update = (values) ->
-  self = Selection @_query, [UPDATE, values]
-  return Datum self
+  Datum Selection @_query, [UPDATE, values]
 
 methods.delete = ->
-  self = Selection @_query, [DELETE]
-  return Datum self
+  Datum Selection @_query, [DELETE]
 
 methods.run = ->
   Promise.resolve()
@@ -85,8 +75,7 @@ methods.then = (onFulfilled) ->
   @run().then onFulfilled
 
 methods._access = (attr) ->
-  self = Selection @_query, [GET_FIELD, attr]
-  return Datum self
+  Datum Selection @_query, [GET_FIELD, attr]
 
 methods._run = (context = {}) ->
   Object.assign context, @_context
@@ -104,7 +93,7 @@ methods._run = (context = {}) ->
       return !utils.equals result, action[1]
 
     when MERGE
-      return utils.merge utils.clone(result), action[1]
+      return utils.merge result, utils.resolve action[1]
 
     when GET_FIELD
       return utils.getField result, action[1]

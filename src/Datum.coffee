@@ -1,9 +1,12 @@
+# TODO: Support time math with other times or numbers.
+# TODO: Comparison of objects/arrays with `gt`, `lt`, `ge`, `le`
 
 assertType = require "assertType"
 sliceArray = require "sliceArray"
 setType = require "setType"
 
 utils = require "./utils"
+row = require "./row"
 
 {isArray} = Array
 
@@ -15,8 +18,12 @@ GT = i++
 LT = i++
 GE = i++
 LE = i++
+OR = i++
+AND = i++
 ADD = i++
 SUB = i++
+MUL = i++
+DIV = i++
 NTH = i++
 ACCESS = i++
 GET_FIELD = i++
@@ -44,75 +51,87 @@ Datum = (query, action) ->
 methods = Datum.prototype
 
 methods.default = (value) ->
-  self = Datum this
-  self._context = {default: value}
-  return self
+  query = this
+  return Datum
+    _db: @_db
+    _run: ->
+      try result = query._run()
+      return result ? value
 
 methods.do = (callback) ->
-  return callback this
+  utils.do Datum(this), callback
 
-methods.eq = (value) ->
-  return Datum this, [EQ, value]
+methods.eq = ->
+  Datum this, [EQ, sliceArray arguments]
 
-methods.ne = (value) ->
-  return Datum this, [NE, value]
+methods.ne = ->
+  Datum this, [NE, sliceArray arguments]
 
-methods.gt = (value) ->
-  return Datum this, [GT, value]
+methods.gt = ->
+  Datum this, [GT, sliceArray arguments]
 
-methods.lt = (value) ->
-  return Datum this, [LT, value]
+methods.lt = ->
+  Datum this, [LT, sliceArray arguments]
 
-methods.ge = (value) ->
-  return Datum this, [GE, value]
+methods.ge = ->
+  Datum this, [GE, sliceArray arguments]
 
-methods.le = (value) ->
-  return Datum this, [LE, value]
+methods.le = ->
+  Datum this, [LE, sliceArray arguments]
 
-methods.add = (value) ->
-  return Datum this, [ADD, value]
+methods.or = ->
+  Datum this, [OR, sliceArray arguments]
 
-methods.sub = (value) ->
-  return Datum this, [SUB, value]
+methods.and = ->
+  Datum this, [AND, sliceArray arguments]
+
+methods.add = ->
+  Datum this, [ADD, sliceArray arguments]
+
+methods.sub = ->
+  Datum this, [SUB, sliceArray arguments]
+
+methods.mul = ->
+  Datum this, [MUL, sliceArray arguments]
+
+methods.div = ->
+  Datum this, [DIV, sliceArray arguments]
 
 methods.nth = (value) ->
-  return Datum this, [NTH, value]
+  Datum this, [NTH, value]
 
 methods.getField = (value) ->
-  return Datum this, [GET_FIELD, value]
+  Datum this, [GET_FIELD, value]
 
 methods.hasFields = (value) ->
-  return Datum this, [HAS_FIELDS, sliceArray arguments]
+  Datum this, [HAS_FIELDS, sliceArray arguments]
 
 methods.offsetsOf = (value) ->
-  return Datum this, [OFFSETS_OF, value]
+  Datum this, [OFFSETS_OF, value]
 
 methods.orderBy = (value) ->
-  return Datum this, [ORDER_BY, value]
+  Datum this, [ORDER_BY, value]
 
 methods.filter = (filter, options) ->
-  return Datum this, [FILTER, filter, options]
+  Datum this, [FILTER, filter, options]
 
 methods.count = ->
-  return Datum this, [COUNT]
+  Datum this, [COUNT]
 
 methods.limit = (n) ->
-  return Datum this, [LIMIT, n]
+  Datum this, [LIMIT, n]
 
 methods.slice = ->
-  return Datum this, [SLICE, sliceArray arguments]
+  Datum this, [SLICE, sliceArray arguments]
 
 methods.merge = ->
-  return Datum this, [MERGE, sliceArray arguments]
+  Datum this, [MERGE, sliceArray arguments]
 
 methods.without = ->
-  return Datum this, [WITHOUT, sliceArray arguments]
+  Datum this, [WITHOUT, sliceArray arguments]
 
 methods.pluck = ->
-  return Datum this, [PLUCK, sliceArray arguments]
-
-methods.replace = (values) ->
-  return Datum this, [REPLACE, values]
+  Datum this, [PLUCK, sliceArray arguments]
 
 # Using a bracket accessor on a sequence
 # may result in an array or a row, so
@@ -121,14 +140,13 @@ methods.replace = (values) ->
 # `replace`, `update`, and `delete` methods.
 
 methods.replace = (values) ->
-  return Datum this, [REPLACE, values]
+  Datum this, [REPLACE, values]
 
 methods.update = (values) ->
-  return Datum this, [UPDATE, values]
+  Datum this, [UPDATE, values]
 
-# `Sequence::_access(string)` returns a `Datum` for a row.
 methods.delete = ->
-  return Datum this, [DELETE]
+  Datum this, [DELETE]
 
 methods.run = ->
   Promise.resolve()
@@ -146,31 +164,58 @@ methods._run = (context = {}) ->
 
   switch action[0]
 
-    # when EQ
-    #
-    # when NE
-    #
-    # when GT
-    #
-    # when LT
-    #
-    # when GE
-    #
-    # when LE
-    #
-    # when ADD
-    #
-    # when SUB
-    #
-    # when NTH
+    when EQ
+      return equals result, action[1]
+
+    when NE
+      return !equals result, action[1]
+
+    when GT
+      return greaterThan result, action[1]
+
+    when LT
+      return lessThan result, action[1]
+
+    when GE
+      return greaterOrEqual result, action[1]
+
+    when LE
+      return lessOrEqual result, action[1]
+
+    when OR
+      return anyButFalse result, action[1]
+
+    when AND
+      return noneFalse result, action[1]
+
+    when ADD
+      return add result, action[1]
+
+    when SUB
+      return subtract result, action[1]
+
+    when MUL
+      return multiply result, action[1]
+
+    when DIV
+      return divide result, action[1]
+
+    when NTH
+      assertType result, Array
+      return seq.nth result, action[1]
 
     when ACCESS
-      return utils.access result, action[1]
+      if isArray result
+        return seq.access result, action[1]
+      assertType result, Object
+      return utils.getField result, action[1]
 
     when GET_FIELD
+      assertType result, Object
       return utils.getField result, action[1]
 
     when HAS_FIELDS
+      assertType result, Object
       return utils.hasFields result, action[1]
 
     when OFFSETS_OF
@@ -210,9 +255,14 @@ methods._run = (context = {}) ->
         return seq.pluck result, action[1]
       return utils.pluck result, action[1]
 
-    # when UPDATE
-    #
-    # when DELETE
+    when REPLACE
+      return null
+
+    when UPDATE
+      return null
+
+    when DELETE
+      return null
 
 module.exports = Datum
 
@@ -220,12 +270,99 @@ module.exports = Datum
 # Helpers
 #
 
+equals = (result, args) ->
+  args = utils.resolve args
+  for arg in args
+    return no unless utils.equals result, arg
+  return yes
+
+greaterThan = (result, args) ->
+  args = utils.resolve args
+  prev = result
+  for arg in args
+    return no if prev <= arg
+    prev = arg
+  return yes
+
+lessThan = (result, args) ->
+  args = utils.resolve args
+  prev = result
+  for arg in args
+    return no if prev >= arg
+    prev = arg
+  return yes
+
+greaterOrEqual = (result, args) ->
+  args = utils.resolve args
+  prev = result
+  for arg in args
+    return no if prev < arg
+    prev = arg
+  return yes
+
+lessOrEqual = (result, args) ->
+  args = utils.resolve args
+  prev = result
+  for arg in args
+    return no if prev > arg
+    prev = arg
+  return yes
+
+anyButFalse = (result, args) ->
+  args = utils.resolve args
+  return result if result isnt no
+  for arg in args
+    return arg if arg isnt no
+  return no
+
+noneFalse = (result, args) ->
+  args = utils.resolve args
+  return no if result is no
+  for arg in args
+    return no if arg is no
+  return args.pop()
+
+add = (result, args) ->
+  assertType result, Number
+  args = utils.resolve args
+  total = result
+  for arg in args
+    assertType arg, Number
+    total += arg
+  return total
+
+subtract = (result, args) ->
+  assertType result, Number
+  args = utils.resolve args
+  total = result
+  for arg in args
+    assertType arg, Number
+    total -= arg
+  return null
+
+multiply = (result, args) ->
+  assertType result, Number
+  args = utils.resolve args
+  total = result
+  for arg in args
+    assertType arg, Number
+    total *= arg
+  return null
+
+divide = (result, args) ->
+  assertType result, Number
+  args = utils.resolve args
+  total = result
+  for arg in args
+    assertType arg, Number
+    total /= arg
+  return null
+
 merge = (result, args) ->
+  args = utils.resolve args
 
-  if isArray result
-    return result.map (result) ->
-      assertType result, Object
-      return utils.merge utils.clone(result), args
+  unless isArray result
+    return utils.merge result, args
 
-  assertType result, Object
-  return utils.merge utils.clone(result), args
+  return result.map (result) ->
+    return utils.merge result, args
