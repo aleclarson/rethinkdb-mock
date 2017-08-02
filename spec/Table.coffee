@@ -19,7 +19,9 @@ describe "db.table().insert()", ->
   it "clones the row before inserting it", ->
     users.insert row = {id: 2}
     .then ->
-      expect(row).not.toBe users.get(2)._run()
+      user = db._tables.users[1]
+      expect(row).not.toBe user
+      expect(row.id).toBe user.id
 
   it "throws for a duplicate primary key", ->
     users.insert {id: 1}

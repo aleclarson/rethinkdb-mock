@@ -137,42 +137,38 @@ describe "utils.without()", ->
 
 describe "utils.merge()", ->
 
-  it "merges an array of objects into an existing object", ->
-    object = {a: 1}
-    result = utils.merge object, [{a: 2, b: 3}, {c: 4}]
-    expect(object is result).toBe true
-    expect(object.a).toBe 2
-    expect(object.b).toBe 3
-    expect(object.c).toBe 4
+  it "creates a new object by merging all given objects from left to right", ->
+    obj = {a: 0}
+    res = utils.merge obj, [ {a: 1, b: 0}, {b: 1, c: 1} ]
+    expect(obj isnt res).toBe true
+    expect(obj.hasOwnProperty('b')).toBe false
+    expect(res.a).toBe 1
+    expect(res.b).toBe 1
+    expect(res.c).toBe 1
 
   it "merges recursively", ->
-    object = {a: {b: {c: 1}}}
-    result = utils.merge object, [{a: {b: {d: 2}, e: 3}}]
-    expect(object.a.b.c).toBe 1
-    expect(object.a.b.d).toBe 2
-    expect(object.a.e).toBe 3
+    res = utils.merge {a: {b: {c: 1}}}, [ {a: {b: {d: 2}, e: 3}} ]
+    expect(res.a.b.c).toBe 1
+    expect(res.a.b.d).toBe 2
+    expect(res.a.e).toBe 3
 
   it "does not merge arrays", ->
-    object = {a: [1, 2]}
-    result = utils.merge object, [{a: [3]}]
-    expect(object is result).toBe true
-    expect(object.a).toEqual [3]
+    res = utils.merge {a: [1, 2]}, [{a: [3]}]
+    expect(res.a).toEqual [3]
 
   it "overwrites the first argument if an input is not an object", ->
 
-    object = {}
-    expect(utils.merge object, [1]).toBe 1
-    expect(utils.merge object, [{a: 1}, '']).toBe ''
-    expect(utils.merge object, [[true]]).toEqual [true]
+    expect(utils.merge {}, [1]).toBe 1
+    expect(utils.merge {}, [{a: 1}, '']).toBe ''
+    expect(utils.merge {}, [[true]]).toEqual [true]
 
     # Another object is created if a non-object input is followed by an object.
-    result = utils.merge object, [{a: 1}, null, {b: 2}]
-    expect(result.b).toBe 2
-    expect(result.hasOwnProperty('a')).toBe false
-    expect(result is object).toBe false
+    res = utils.merge {}, [{a: 1}, null, {b: 2}]
+    expect(res.b).toBe 2
+    expect(res.hasOwnProperty('a')).toBe false
 
   # This allows for proper merging of one row into another.
   it "clones any merged arrays", ->
     array = [1]
-    result = utils.merge {}, {array}
-    expect(result.array is array).toBe false
+    res = utils.merge {}, {array}
+    expect(res.array is array).toBe false
