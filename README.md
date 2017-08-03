@@ -100,7 +100,7 @@ Be advised that anything on this list may not support specific use cases yet.
   - `()`, `do`, `eq`, `ne`, `merge`, `default`, `getField`, `hasFields`, `without`, `pluck`, `replace`, `update`, `delete`
 
 - `Datum` methods
-  - `()`, `do`, `eq`, `ne`, `gt`, `lt`, `ge`, `le`, `add`, `sub`, `merge`, `default`, `getField`, `hasFields`, `without`, `pluck`
+  - `()`, `do`, `eq`, `ne`, `gt`, `lt`, `ge`, `le`, `add`, `sub`, `mul`, `div`, `and`, `or`, `merge`, `default`, `getField`, `hasFields`, `without`, `pluck`
 
 ---
 
@@ -110,15 +110,14 @@ This list may not be exhaustive and will be updated accordingly.
 
 - `r.row`
 
+- Binary support
+
 - Changefeeds
 
-- Table creation, deletion, or indexing
-
-- Writing data
-  - `sync`
-
-- Selecting data
-  - `between`
+- `tableCreate`, `tableList`, `tableDrop`
+- `indexCreate`, `indexList`, `indexDrop`, `indexRename`, `indexStatus`, `indexWait`
+- `sync`
+- `between`
 
 - Joins
   - `innerJoin`, `outerJoin`, `eqJoin`, `zip`
@@ -142,7 +141,7 @@ This list may not be exhaustive and will be updated accordingly.
   - `match`, `split`, `upcase`, `downcase`
 
 - Math methods
-  - `mul`, `div`, `mod`, `and`, `or`, `not`, `random`, `round`, `ceil`, `floor`
+  - `mod`, `not`, `random`, `round`, `ceil`, `floor`
 
 - Control structures
   - `do`, `args`, `branch`, `binary`, `forEach`, `range`, `error`, `js`, `coerceTo`, `typeOf`, `info`, `json`, `toJSON`, `http`
