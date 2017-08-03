@@ -30,9 +30,7 @@ Selection = (query, action) ->
 methods = Selection.prototype
 
 methods.default = (value) ->
-  self = Datum @_query
-  self._context = {default: value}
-  return self
+  utils.default Datum(this), value
 
 methods.do = (callback) ->
   utils.do Selection(@_query), callback
@@ -93,22 +91,27 @@ methods._run = (context = {}) ->
       return !utils.equals result, action[1]
 
     when MERGE
+      utils.expect result, "OBJECT"
       return utils.merge result, utils.resolve action[1]
 
     when GET_FIELD
+      utils.expect result, "OBJECT"
       return utils.getField result, action[1]
 
     when HAS_FIELDS
+      utils.expect result, "OBJECT"
       return utils.hasFields result, action[1]
 
     when WITHOUT
+      utils.expect result, "OBJECT"
       return utils.without result, action[1]
 
     when PLUCK
+      utils.expect result, "OBJECT"
       return utils.pluck result, action[1]
 
     when REPLACE
-      return row.replace @_db, context.tableId, result.id, action[1]
+      return row.replace @_db, context, result, action[1]
 
     when UPDATE
       return row.update result, action[1]

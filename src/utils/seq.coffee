@@ -185,11 +185,18 @@ seq.slice = (array, args) ->
 
   return array.slice startIndex, endIndex
 
+seq.merge = (rows, args) ->
+  args = utils.resolve args
+  rows.map (row) ->
+    utils.merge row, args
+
 seq.pluck = (rows, args) ->
+  args = utils.resolve args
   rows.map (row) ->
     utils.pluck row, args
 
 seq.without = (rows, args) ->
+  args = utils.resolve args
   rows.map (row) ->
     utils.without row, args
 

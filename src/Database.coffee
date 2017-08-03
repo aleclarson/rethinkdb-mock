@@ -27,15 +27,30 @@ methods.tableDrop = (tableId) ->
   throw Error "Not implemented"
 
 # TODO: Support `row`
-# methods.row = Row()
+Object.defineProperty methods, "row",
+  enumerable: yes
+  get: -> Row this
+
+methods.uuid = require "./utils/uuid"
+
+methods.typeOf = (value) ->
+  return Datum
+    _db: this
+    _run: ->
+      if value is undefined
+        throw Error "Argument 0 to typeOf may not be `undefined`"
+      if utils.isQuery value
+        return utils.typeOf value._run()
+      return utils.typeOf value
 
 # TODO: You cannot have a sequence nested in an expression. You must use `coerceTo` first.
 methods.expr = (value) ->
   return Datum
     _db: this
-    _run: -> utils.resolve value
-
-methods.uuid = require "./utils/uuid"
+    _run: ->
+      if value is undefined
+        throw Error "Cannot wrap undefined with r.expr()"
+      return utils.resolve value
 
 # TODO: You cannot have a sequence nested in an object. You must use `coerceTo` first.
 methods.object = ->

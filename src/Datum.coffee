@@ -1,12 +1,12 @@
 # TODO: Support time math with other times or numbers.
 # TODO: Comparison of objects/arrays with `gt`, `lt`, `ge`, `le`
 
-assertType = require "assertType"
 sliceArray = require "sliceArray"
 setType = require "setType"
 
 utils = require "./utils"
-row = require "./row"
+row = require "./utils/row"
+seq = require "./utils/seq"
 
 {isArray} = Array
 
@@ -51,12 +51,7 @@ Datum = (query, action) ->
 methods = Datum.prototype
 
 methods.default = (value) ->
-  query = this
-  return Datum
-    _db: @_db
-    _run: ->
-      try result = query._run()
-      return result ? value
+  utils.default Datum(this), value
 
 methods.do = (callback) ->
   utils.do Datum(this), callback
@@ -183,10 +178,10 @@ methods._run = (context = {}) ->
       return lessOrEqual result, action[1]
 
     when OR
-      return anyButFalse result, action[1]
+      return stopAtNotFalse result, action[1]
 
     when AND
-      return noneFalse result, action[1]
+      return stopAtFalse result, action[1]
 
     when ADD
       return add result, action[1]
@@ -201,59 +196,51 @@ methods._run = (context = {}) ->
       return divide result, action[1]
 
     when NTH
-      assertType result, Array
+      utils.expectArray result
       return seq.nth result, action[1]
 
     when ACCESS
-      if isArray result
-        return seq.access result, action[1]
-      assertType result, Object
-      return utils.getField result, action[1]
+      return access result, action[1]
 
     when GET_FIELD
-      assertType result, Object
+      utils.expect result, "OBJECT"
       return utils.getField result, action[1]
 
     when HAS_FIELDS
-      assertType result, Object
+      utils.expect result, "OBJECT"
       return utils.hasFields result, action[1]
 
     when OFFSETS_OF
-      assertType result, Array
+      utils.expectArray result
       return seq.offsetsOf result, action[1]
 
     when ORDER_BY
-      assertType result, Array
+      utils.expectArray result
       return seq.sort result, action[1]
 
     when FILTER
-      assertType result, Array
+      utils.expectArray result
       return seq.filter result, action[1], action[2]
 
     when COUNT
-      assertType result, Array
+      utils.expectArray result
       return result.length
 
     when LIMIT
-      assertType result, Array
+      utils.expectArray result
       return seq.limit result, action[1]
 
     when SLICE
-      assertType result, Array
-      return seq.slice result, action[1]
+      return slice result, action[1]
 
     when MERGE
       return merge result, action[1]
 
     when WITHOUT
-      if isArray result
-        return seq.without result, action[1]
-      return utils.without result, action[1]
+      return without result, action[1]
 
     when PLUCK
-      if isArray result
-        return seq.pluck result, action[1]
-      return utils.pluck result, action[1]
+      return pluck result, action[1]
 
     when REPLACE
       return null
@@ -308,61 +295,124 @@ lessOrEqual = (result, args) ->
     prev = arg
   return yes
 
-anyButFalse = (result, args) ->
-  args = utils.resolve args
-  return result if result isnt no
-  for arg in args
-    return arg if arg isnt no
-  return no
+isFalse = (value) ->
+  (value is null) or (value is false)
 
-noneFalse = (result, args) ->
+stopAtNotFalse = (result, args) ->
   args = utils.resolve args
-  return no if result is no
+  return result unless isFalse result
   for arg in args
-    return no if arg is no
+    return arg unless isFalse arg
+  return args.pop()
+
+stopAtFalse = (result, args) ->
+  args = utils.resolve args
+  return result if isFalse result
+  for arg in args
+    return arg if isFalse arg
   return args.pop()
 
 add = (result, args) ->
-  assertType result, Number
+  utils.expect result, "NUMBER"
   args = utils.resolve args
   total = result
   for arg in args
-    assertType arg, Number
+    utils.expect arg, "NUMBER"
     total += arg
   return total
 
 subtract = (result, args) ->
-  assertType result, Number
+  utils.expect result, "NUMBER"
   args = utils.resolve args
   total = result
   for arg in args
-    assertType arg, Number
+    utils.expect arg, "NUMBER"
     total -= arg
   return null
 
 multiply = (result, args) ->
-  assertType result, Number
+  utils.expect result, "NUMBER"
   args = utils.resolve args
   total = result
   for arg in args
-    assertType arg, Number
+    utils.expect arg, "NUMBER"
     total *= arg
   return null
 
 divide = (result, args) ->
-  assertType result, Number
+  utils.expect result, "NUMBER"
   args = utils.resolve args
   total = result
   for arg in args
-    assertType arg, Number
+    utils.expect arg, "NUMBER"
     total /= arg
   return null
 
+access = (result, key) ->
+
+  if utils.isQuery key
+    key = key._run()
+
+  keyType = utils.typeOf key
+  if keyType is "NUMBER"
+    utils.expectArray result
+    return seq.nth result, key
+
+  if keyType isnt "STRING"
+    throw Error "Expected NUMBER or STRING as second argument to `bracket` but found #{keyType}"
+
+  resultType = utils.typeOf result
+  if resultType is "ARRAY"
+    return seq.access result, key
+
+  if resultType is "OBJECT"
+    return utils.getField result, key
+
+  throw Error "Expected ARRAY or OBJECT as first argument to `bracket` but found #{resultType}"
+
+slice = (result, args) ->
+
+  resultType = utils.typeOf result
+  if resultType is "ARRAY"
+    return seq.slice result, action[1]
+
+  if resultType is "BINARY"
+    throw Error "`slice` does not support BINARY values (yet)"
+
+  if resultType is "STRING"
+    throw Error "`slice` does not support STRING values (yet)"
+
+  throw Error "Expected ARRAY, BINARY, or STRING, but found #{resultType}"
+
 merge = (result, args) ->
-  args = utils.resolve args
+  resultType = utils.typeOf result
 
-  unless isArray result
-    return utils.merge result, args
+  if resultType is "OBJECT"
+    return utils.merge result, utils.resolve args
 
-  return result.map (result) ->
-    return utils.merge result, args
+  if resultType is "ARRAY"
+    return seq.merge result, args
+
+  throw Error "Expected ARRAY or OBJECT but found #{resultType}"
+
+without = (result, args) ->
+  resultType = utils.typeOf result
+
+  if resultType is "OBJECT"
+    return utils.without result, utils.resolve args
+
+  if resultType is "ARRAY"
+    return seq.without result, args
+
+  throw Error "Expected ARRAY or OBJECT but found #{resultType}"
+
+pluck = (result, args) ->
+  resultType = utils.typeOf result
+
+  if resultType is "OBJECT"
+    return utils.pluck result, utils.resolve args
+
+  if resultType is "ARRAY"
+    return seq.pluck result, args
+
+  throw Error "Expected ARRAY or OBJECT but found #{resultType}"

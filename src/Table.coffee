@@ -30,8 +30,8 @@ methods = Table.prototype
 methods.do = (callback) ->
   throw Error "Tables must be coerced to arrays before calling `do`"
 
-methods.get = (id) ->
-  Selection Table @_db, @_tableId, [GET, id]
+methods.get = (rowId) ->
+  Selection Table @_db, @_tableId, [GET, rowId]
 
 methods.getAll = ->
   Sequence Table @_db, @_tableId, [GET_ALL, sliceArray arguments]
@@ -70,7 +70,7 @@ methods._run = (context) ->
   switch action[0]
 
     when GET
-      return getRow table, action[1]
+      return getRow table, action[1], context
 
     when GET_ALL
       return getRows table, action[1]
@@ -87,19 +87,25 @@ module.exports = Table
 # Helpers
 #
 
-getRow = (table, id) ->
+getRow = (table, rowId, context) ->
 
-  if id is undefined
+  if rowId is undefined
     throw Error "Argument 1 to get may not be `undefined`"
 
-  if utils.isQuery id
-    id = id._run()
+  if utils.isQuery rowId
+    rowId = rowId._run()
 
-  if (id is null) or isConstructor(id, Object)
+  if (rowId is null) or isConstructor(rowId, Object)
     throw Error "Primary keys must be either a number, string, bool, pseudotype or array"
 
-  row = table.find (row) -> row.id is id
-  return row or null
+  index = -1
+  while ++index < table.length
+    if table[index].id is rowId
+      context.rowId = rowId
+      context.rowIndex = index
+      return table[index]
+
+  return null
 
 getRows = (table, args) ->
 
@@ -133,6 +139,19 @@ getRows = (table, args) ->
         return yes
     return no
 
+findRow = (table, rowId) ->
+
+  if rowId is undefined
+    throw Error "Argument 1 to get may not be `undefined`"
+
+  if utils.isQuery rowId
+    rowId = rowId._run()
+
+  if (rowId is null) or isConstructor(rowId, Object)
+    throw Error "Primary keys must be either a number, string, bool, pseudotype or array"
+
+  table.find (row) -> row.id is rowId
+
 # TODO: Support options argument.
 insertRows = (table, rows) ->
   rows = utils.resolve rows
@@ -146,7 +165,7 @@ insertRows = (table, rows) ->
 
     # Check for duplicate primary keys.
     if row.hasOwnProperty "id"
-      if getRow table, row.id
+      if findRow table, row.id
       then errors += 1
       else table.push row
 

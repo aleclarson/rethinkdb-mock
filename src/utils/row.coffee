@@ -6,37 +6,40 @@ utils = require "."
 
 row = exports
 
-row.replace = (db, tableId, rowId, values) ->
+row.replace = (db, context, row, values) ->
+  {tableId, rowId, rowIndex} = context
 
   if values is undefined
     throw Error "Argument 1 to replace may not be `undefined`"
 
-  if utils.isQuery values
-    values = values._run()
-    if values isnt null
-      assertType values, Object
-
-  else if values isnt null
-    assertType values, Object
-    values = utils.resolve values
+  values = utils.resolve values
 
   table = db._tables[tableId]
-  index = indexOf table, rowId
   if values is null
-    table.splice index, 1
+
+    if row is null
+      return {skipped: 1}
+
+    table.splice rowIndex, 1
     return {deleted: 1}
 
-  assertType values, Object
+  if "OBJECT" isnt utils.typeOf values
+    throw Error "Inserted value must be an OBJECT (got #{utils.typeOf values})"
+
   unless values.hasOwnProperty "id"
     throw Error "Inserted object must have primary key `id`"
 
   if values.id isnt rowId
     throw Error "Primary key `id` cannot be changed"
 
-  if utils.equals table[index], values
+  if row is null
+    table.push utils.clone values
+    return {inserted: 1}
+
+  if utils.equals row, values
     return {unchanged: 1}
 
-  table[index] = values
+  table[rowIndex] = utils.clone values
   return {replaced: 1}
 
 row.update = (row, values) ->

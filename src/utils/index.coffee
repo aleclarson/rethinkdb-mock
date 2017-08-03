@@ -5,7 +5,30 @@ sliceArray = require "sliceArray"
 
 {isArray} = Array
 
+typeNames =
+  boolean: "BOOL"
+  number: "NUMBER"
+  object: "OBJECT"
+  string: "STRING"
+
 utils = exports
+
+# TODO: Add PTYPE<TIME> for dates.
+utils.typeOf = (value) ->
+  return "NULL" if value is null
+  return "ARRAY" if isArray value
+  return name if name = typeNames[typeof value]
+  throw Error "Unsupported value type"
+
+utils.expect = (value, expectedType) ->
+  type = utils.typeOf value
+  if type isnt expectedType
+    throw Error "Expected type #{expectedType} but found #{type}"
+
+utils.expectArray = (value) ->
+  type = utils.typeOf value
+  if type isnt "ARRAY"
+    throw Error "Cannot convert #{type} to SEQUENCE"
 
 utils.isQuery = (queryTypes, value) ->
   return no unless value
@@ -36,12 +59,26 @@ utils.do = (self, callback) ->
 
   return self
 
+isNullError = (m) ->
+  return yes if m is "Index out of bounds"
+  return yes if m.startsWith "No attribute"
+  return yes if ~m.indexOf "NULL"
+  return no
+
+utils.default = (self, value) ->
+  self._run = ->
+    try result = self._query._run()
+    catch error
+      throw error unless isNullError error.message
+    return result ? value
+  return self
+
 utils.getField = (value, attr) ->
 
   if utils.isQuery attr
     attr = attr._run()
 
-  assertType attr, String
+  utils.expect attr, "STRING"
   unless value.hasOwnProperty attr
     throw Error "No attribute `#{attr}` in object"
 
@@ -84,16 +121,11 @@ utils.flatten = (input, output = []) ->
 
 # TODO: Support sub-queries as keys.
 utils.pluck = (input, keys) ->
-  assertType input, Object
-  assertType keys, Array
-  return pluckWithArray keys, input, {}
+  pluckWithArray keys, input, {}
 
 # TODO: Support sub-queries as keys.
 # TODO: Support nested arrays/objects for `without`.
 utils.without = (input, keys) ->
-  assertType input, Object
-  assertType keys, Array
-  keys = utils.flatten keys
   output = {}
   for key, value of input
     unless ~keys.indexOf key

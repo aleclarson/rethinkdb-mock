@@ -19,6 +19,7 @@ FILTER = i++
 COUNT = i++
 LIMIT = i++
 SLICE = i++
+MERGE = i++
 PLUCK = i++
 WITHOUT = i++
 FOLD = i++
@@ -129,6 +130,9 @@ methods._run = (context = {}) ->
     when SLICE
       return seq.slice rows, action[1]
 
+    when MERGE
+      return seq.merge rows, action[1]
+
     when PLUCK
       return seq.pluck rows, action[1]
 
@@ -178,9 +182,9 @@ updateRows = (rows, values, options) ->
 
   return {replaced, unchanged: rows.length - replaced}
 
+# TODO: Throw an error if not an array of rows.
 deleteRows = (db, tableId, rows) ->
   assertType tableId, String
-  # TODO: Throw an error if not an array of rows.
 
   deleted = 0
   db._tables[tableId] =
