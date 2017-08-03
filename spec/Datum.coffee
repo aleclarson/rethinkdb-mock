@@ -8,36 +8,29 @@ users = db.table "users"
 describe "datum.default()", ->
 
   it "replaces null values with the given value", ->
-    db.expr(null).default 1
-    .then (res) ->
-      expect(res).toBe 1
+    query = db.expr(null).default 1
+    expect(query._run()).toBe 1
 
   it "avoids 'missing attribute' errors", ->
-    db.expr({})("key").default 1
-    .then (res) ->
-      expect(res).toBe 1
+    query = db.expr({})("key").default 1
+    expect(query._run()).toBe 1
 
   it "avoids 'index out of bounds' errors", ->
-    db.expr([])(0).default 1
-    .then (res) ->
-      expect(res).toBe 1
+    query = db.expr([])(0).default 1
+    expect(query._run()).toBe 1
 
   it "avoids 'null not an object' errors", ->
-    db.expr(null)("key").default 1
-    .then (res) ->
-      expect(res).toBe 1
+    query = db.expr(null)("key").default 1
+    expect(query._run()).toBe 1
 
   it "avoids 'null not a sequence' errors", ->
-    db.expr(null)(0).default 1
-    .then (res) ->
-      expect(res).toBe 1
+    query = db.expr(null)(0).default 1
+    expect(query._run()).toBe 1
 
   it "does not avoid other errors", ->
-    db.expr(undefined).default 1
-    .then (res) ->
-      expect(res).toBe undefined
-    .catch (error) ->
-      expect(error?).toBe true
+    query = db.expr(undefined).default 1
+    expect -> query._run()
+    .toThrow()
 
   it "uses the first default value in a series of `default` calls", ->
     db.expr(null).default(1).default 2
@@ -115,8 +108,9 @@ describe "datum.gt()", ->
     .then (res) ->
       expect(res).toBe false
 
-  it "compares based on typeof (time > string > object > number > null > bool > array)", ->
-    db.expr(new Date).gt "", {}, 0, null, false, []
+  # NOTE: Time is less than string, because `typeOf` returns PTYPE<TIME>
+  it "compares based on typeof (string > time > object > number > null > bool > array)", ->
+    db.expr("").gt new Date, {}, 0, null, false, []
     .then (res) ->
       expect(res).toBe true
 
@@ -132,41 +126,40 @@ describe "datum.lt()", ->
     .then (res) ->
       expect(res).toBe false
 
-  it "compares based on typeof (array < bool < null < number < object < string < time)", ->
-    db.expr([]).lt true, null, 1, {}, "", new Date
+  # NOTE: Time is less than string, because `typeOf` returns PTYPE<TIME>
+  it "compares based on typeof (array < bool < null < number < object < time < string)", ->
+    db.expr([]).lt true, null, 1, {}, new Date, ""
     .then (res) ->
       expect(res).toBe true
 
 describe "datum.or()", ->
 
-  it "returns false if all values are false", ->
-    db.expr(false).or false, false
-    .then (res) ->
-      expect(res).toBe false
+  it "returns the last value if all other values are false or null", ->
 
-  it "returns the first value that is not false", ->
+    query = db.expr(false).or null, false
+    expect(query._run()).toBe false
 
-    db.expr(false).or 1, 2, false
-    .then (res) ->
-      expect(res).toBe 1
+    query = db.expr(false).or false, null
+    expect(query._run()).toBe null
 
-      db.expr(false).or true, 1
-      .then (res) ->
-        expect(res).toBe true
+  it "returns the first value that is not false or null", ->
+
+    query = db.expr(false).or null, 1, 2
+    expect(query._run()).toBe 1
+
+    query = db.expr(null).or true, 1
+    expect(query._run()).toBe true
 
 describe "datum.and()", ->
 
-  it "returns false if at least one value is false", ->
-    db.expr(true).and false, true, 1
-    .then (res) ->
-      expect(res).toBe false
+  it "returns the last value if all other values are not false or null", ->
+    query = db.expr(1).and 2, 3
+    expect(query._run()).toBe 3
 
-  it "returns the last value if all other values are not false", ->
+  it "returns the first value that is false or null", ->
 
-    db.expr(true).and true, 1
-    .then (res) ->
-      expect(res).toBe 1
+    query = db.expr(true).and false, true
+    expect(query._run()).toBe false
 
-      db.expr(true).and true, true
-      .then (res) ->
-        expect(res).toBe true
+    query = db.expr(1).and null, 2
+    expect(query._run()).toBe null

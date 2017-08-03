@@ -12,31 +12,34 @@ describe "selection.replace()", ->
     users.insert {id: 1, name: "Alec"}
 
   it "replaces an entire row", ->
-    users.get(1).replace {id: 1, name: "Shaggy"}
-    .then (res) ->
-      expect(res.replaced).toBe 1
+    query = users.get(1).replace {id: 1, name: "Shaggy"}
+    expect(query._run()).toEqual {replaced: 1}
 
   it "knows if the row has not changed", ->
-    users.get(1).replace {id: 1, name: "Shaggy"}
-    .then (res) ->
-      expect(res.unchanged).toBe 1
+    query = users.get(1).replace {id: 1, name: "Shaggy"}
+    expect(query._run()).toEqual {unchanged: 1}
 
   it "throws an error if no primary key is defined", ->
-    users.get(1).replace {name: "Fred"}
-    .run().catch (error) ->
-      expect(error.message).toBe "Inserted object must have primary key `id`"
+    query = users.get(1).replace {name: "Fred"}
+    expect -> query._run()
+    .toThrowError "Inserted object must have primary key `id`"
 
   it "throws an error if the primary key is different", ->
-    users.get(1).replace {id: 2, name: "Nathan"}
-    .run().catch (error) ->
-      expect(error.message).toBe "Primary key `id` cannot be changed"
+    query = users.get(1).replace {id: 2, name: "Nathan"}
+    expect -> query._run()
+    .toThrowError "Primary key `id` cannot be changed"
 
   it "deletes the row if the replacement is null", ->
     users.insert {id: 2, name: "Colin"}
-    .then -> users.get(2).replace null
-    .then (res) ->
-      expect(res.deleted).toBe 1
-      expect(users.get(2)._run()).toBe null
+    .then ->
+      user2 = users.get 2
+
+      query = user2.replace null
+      expect(query._run()).toEqual {deleted: 1}
+      expect(user2._run()).toBe null
+
+      # Skip the replacement if no row exists.
+      expect(query._run()).toEqual {skipped: 1}
 
 describe "selection.update()", ->
 
