@@ -35,44 +35,6 @@ utils.isQuery = (queryTypes, value) ->
   return yes if ~queryTypes.indexOf value.constructor
   return no
 
-# TODO: Support variadic arguments.
-utils.do = (self, callback) ->
-  query = callback self
-
-  if query is undefined
-    throw Error "Return value may not be `undefined`"
-
-  unless utils.isQuery query
-    query = self._db.expr query
-
-  input = undefined
-  getInput = ->
-    return input if input isnt undefined
-    return input = self._query._run()
-
-  self._run = run = ->
-    self._run = getInput
-    output = query._run()
-    input = undefined
-    self._run = run
-    return output
-
-  return self
-
-isNullError = (m) ->
-  return yes if m is "Index out of bounds"
-  return yes if m.startsWith "No attribute"
-  return yes if ~m.indexOf "NULL"
-  return no
-
-utils.default = (self, value) ->
-  self._run = ->
-    try result = self._query._run()
-    catch error
-      throw error unless isNullError error.message
-    return result ? value
-  return self
-
 utils.getField = (value, attr) ->
 
   if utils.isQuery attr

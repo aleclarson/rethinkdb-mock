@@ -3,11 +3,16 @@
 assertType = require "assertType"
 
 Database = require "./Database"
+Table = require "./Table"
+Query = require "./Query"
 utils = require "./utils"
+
+# Bind the possible query types.
+utils.isQuery = utils.isQuery.bind null, [Query, Table]
 
 cache = Object.create null
 
-module.exports = (options = {}) ->
+rethinkdb = (options = {}) ->
   assertType options, Object
 
   name = options.name or "test"
@@ -22,10 +27,7 @@ module.exports = (options = {}) ->
   cache[name] = db
   return db
 
-# Bind the possible query types.
-utils.isQuery = utils.isQuery.bind utils, [
-  require "./Selection"
-  require "./Sequence"
-  require "./Datum"
-  require "./Table"
-]
+rethinkdb.isQuery = utils.isQuery
+rethinkdb.runQuery = Query._run
+
+module.exports = rethinkdb

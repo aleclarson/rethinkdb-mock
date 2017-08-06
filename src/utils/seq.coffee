@@ -9,7 +9,7 @@ utils = require "."
 
 seq = exports
 
-seq.access = (array, value) ->
+seq.bracket = (array, value) ->
 
   if utils.isQuery value
     value = value._run()
@@ -24,6 +24,7 @@ seq.access = (array, value) ->
 
 # TODO: Prevent indexes less than -1 for streams.
 seq.nth = (array, index) ->
+  utils.expectArray array
 
   if utils.isQuery index
     index = index._run()
@@ -65,23 +66,6 @@ seq.hasFields = (array, attrs) ->
 
   return results
 
-# TODO: Support `offsetsOf` function argument
-seq.offsetsOf = (array, value) ->
-
-  if value is undefined
-    throw Error "Argument 1 to offsetsOf may not be `undefined`"
-
-  if utils.isQuery value
-    value = value._run()
-
-  if isConstructor value, Function
-    throw Error "Function argument not yet implemented"
-
-  offsets = []
-  for value2, index in array
-    offsets.push index if utils.equals value2, value
-  return offsets
-
 seq.filter = (array, filter, options) ->
 
   if filter is undefined
@@ -119,45 +103,6 @@ seq.filter = (array, filter, options) ->
     for matcher in matchers
       return no unless matcher row
     return yes
-
-# TODO: Support sorting by an array/object value.
-# TODO: Support `orderBy` function argument
-seq.sort = (array, value) ->
-
-  if value is undefined
-    throw Error "Argument 1 to orderBy may not be `undefined`"
-
-  if utils.isQuery value
-    value = value._run()
-
-  if isArray value
-    [sort, key] = value
-
-  else if isConstructor value, String
-    sort = "asc"
-    key = value
-
-  if sort is "asc"
-    sorter = sortAscending key
-
-  else if sort is "desc"
-    sorter = sortDescending key
-
-  else throw Error "Invalid sort algorithm: '#{sort}'"
-
-  assertType key, String
-  return array.slice().sort sorter
-
-seq.limit = (array, n) ->
-
-  if utils.isQuery n
-    n = n._run()
-
-  assertType n, Number
-  if n < 0
-    throw Error "Cannot call `limit` with a negative number"
-
-  return array.slice 0, n
 
 # TODO: Throw error for negative indexes on a "stream".
 seq.slice = (array, args) ->
@@ -208,19 +153,3 @@ hasFields = (value, attrs) ->
   for attr in attrs
     return no unless value.hasOwnProperty attr
   return yes
-
-# Objects with lesser values come first.
-# An undefined value is treated as less than any defined value.
-# When two values are equal, the first value is treated as lesser.
-sortAscending = (key) -> (a, b) ->
-  return 1 if b[key] is undefined
-  return 1 if a[key] > b[key]
-  return -1
-
-# Objects with greater values come first.
-# An undefined value is treated as less than any defined value.
-# When two values are equal, the first value is treated as greater.
-sortDescending = (key) -> (a, b) ->
-  return -1 if b[key] is undefined
-  return -1 if a[key] >= b[key]
-  return 1
