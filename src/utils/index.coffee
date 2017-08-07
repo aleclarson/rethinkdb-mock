@@ -47,20 +47,12 @@ utils.getField = (value, attr) ->
   return value[attr]
 
 utils.hasFields = (value, attrs) ->
-
   for attr, index in attrs
-
-    if attr is undefined
-      throw Error "Argument #{index} to hasFields may not be `undefined`"
-
-    unless isConstructor attr, String
-      throw Error "Invalid path argument"
-
+    utils.expect attr, "STRING"
     return no unless value.hasOwnProperty attr
   return yes
 
 utils.equals = (value1, value2) ->
-  value2 = utils.resolve value2
 
   if isArray value1
     return no unless isArray value2
@@ -108,6 +100,10 @@ utils.merge = (output, inputs) ->
 
 # Returns true if the `patch` changed at least one value.
 utils.update = (object, patch) ->
+  return no if patch is null
+
+  if "OBJECT" isnt utils.typeOf patch
+    throw Error "Inserted value must be an OBJECT (got #{utils.typeOf patch})"
 
   if patch.hasOwnProperty "id"
     if patch.id isnt object.id
@@ -256,9 +252,6 @@ resolveArray = (values) ->
   clone = []
   for value, index in values
 
-    if value is undefined
-      throw Error "Cannot wrap undefined with r.expr()"
-
     if isArray value
       clone.push resolveArray value
 
@@ -275,9 +268,6 @@ resolveArray = (values) ->
 resolveObject = (values) ->
   clone = {}
   for key, value of values
-
-    if value is undefined
-      throw Error "Object field '#{key}' may not be undefined"
 
     if isArray value
       clone[key] = resolveArray value

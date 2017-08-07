@@ -19,15 +19,7 @@ rethinkdb = (options = {}) ->
   return db if db = cache[name]
 
   db = new Database name
-  db.init = (tables) ->
-    assertType tables, Object
-    @_tables = tables
-    return
-
   cache[name] = db
   return db
-
-rethinkdb.isQuery = utils.isQuery
-rethinkdb.runQuery = Query._run
 
 module.exports = rethinkdb

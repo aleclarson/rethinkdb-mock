@@ -8,17 +8,20 @@ Query = require "./Query"
 utils = require "./utils"
 uuid = require "./utils/uuid"
 
-parseArgs = Query::_parseArgs
 {isArray} = Array
 
-Table = (db, tableId) ->
-  self = (key) -> Query(self, "TABLE").bracket key
-  self._db = db
-  self._type = "TABLE"
-  self._tableId = tableId
-  return setType self, Table
+parseArgs = Query::_parseArgs
+runQuery = Query::_run
+define = Object.defineProperty
 
-methods = Table.prototype
+Table = (db, tableId) ->
+  query = (key) -> Query(query, "TABLE").bracket key
+  query._db = db
+  query._type = "TABLE"
+  query._tableId = tableId
+  return setType query, Table
+
+methods = {}
 
 methods.do = (callback) ->
   throw Error "Tables must be coerced to arrays before calling `do`"
@@ -60,12 +63,12 @@ methods.delete = ->
 
 methods.run = ->
   Promise.resolve()
-    .then Query._run.bind null, this
+    .then runQuery.bind this
 
 methods.then = (onFulfilled) ->
   @run().then onFulfilled
 
-methods._run = (ctx) ->
+methods._eval = (ctx) ->
   ctx.type = @_type
   ctx.tableId = @_tableId
 
@@ -75,19 +78,27 @@ methods._run = (ctx) ->
   unless @_action
     return table
 
+  args = utils.resolve @_args
   switch @_action
 
     when "get"
       return getRow table, @_rowId, ctx
 
     when "getAll"
-      return getRows table, @_args
+      return getRows table, args
 
     when "insert"
-      return insertRows table, @_args[0], @_args[1]
+      return insertRows table, args[0], args[1]
 
     when "delete"
       return clearTable table
+
+methods._run = runQuery
+
+Object.keys(methods).forEach (key) ->
+  define Table.prototype, key,
+    value: methods[key]
+    writable: yes
 
 module.exports = Table
 
@@ -118,22 +129,15 @@ getRow = (table, rowId, ctx) ->
   return null
 
 getRows = (table, args) ->
-
   return [] unless args.length
 
   if isConstructor args[args.length - 1], Object
     key = args.pop().index
 
   key ?= "id"
-  assertType key, String
+  utils.expect key, "STRING"
 
   args.forEach (arg, index) ->
-
-    if arg is undefined
-      throw Error "Argument #{index} to getAll may not be `undefined`"
-
-    if utils.isQuery arg
-      args[index] = arg = arg._run()
 
     if arg is null
       throw Error "Keys cannot be NULL"
@@ -151,7 +155,6 @@ getRows = (table, args) ->
 
 # TODO: Support options argument.
 insertRows = (table, rows) ->
-  rows = utils.resolve rows
   rows = [rows] unless isArray rows
 
   errors = 0

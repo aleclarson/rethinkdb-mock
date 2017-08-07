@@ -9,13 +9,22 @@ utils = require "./utils"
 
 {isArray} = Array
 
+define = Object.defineProperty
+
 Database = (name) ->
   assertType name, String
   @_name = name
-  @_tables = {}
+  define this, "_tables",
+    value: {}
+    writable: yes
   return this
 
-methods = Database.prototype
+methods = {}
+
+methods.init = (tables) ->
+  assertType tables, Object
+  @_tables = tables
+  return
 
 methods.table = (tableId) ->
   self = Table this, tableId
@@ -29,21 +38,21 @@ methods.tableCreate = (tableId) ->
 methods.tableDrop = (tableId) ->
   throw Error "Not implemented"
 
-# TODO: Support `row`
-Object.defineProperty methods, "row",
-  enumerable: yes
-  get: -> Row this
-
 methods.uuid = require "./utils/uuid"
 
 methods.typeOf = (value) ->
-  return Query
-    _run: ->
-      if value is undefined
-        throw Error "Cannot convert `undefined` with r.expr()"
-      if utils.isQuery value
-        return utils.typeOf value._run()
-      return utils.typeOf value
+
+  if value is undefined
+    throw Error "Cannot convert `undefined` with r.expr()"
+
+  self = Query()
+  self._type = "DATUM"
+  self._eval = (ctx) ->
+    ctx.type = @_type
+    if utils.isQuery value
+      return utils.typeOf value._run()
+    return utils.typeOf value
+  return self
 
 # TODO: You cannot have a sequence nested in an expression. You must use `coerceTo` first.
 methods.expr = Query._expr
@@ -55,9 +64,25 @@ methods.object = ->
   if args.length % 2
     throw Error "Expected an even number of arguments"
 
-  return Query
-    _db: this
-    _run: -> createObject args
+  args.forEach (arg, index) ->
+    if arg is undefined
+      throw Error "Argument #{index} to object may not be `undefined`"
+
+  self = Query()
+  self._type = "DATUM"
+  self._eval = (ctx) ->
+    result = {}
+
+    index = 0
+    while index < args.length
+      key = utils.resolve args[index]
+      utils.expect key, "STRING"
+      result[key] = utils.resolve args[index + 1]
+      index += 2
+
+    ctx.type = @_type
+    return result
+  return self
 
 # TODO: Support `args`
 # methods.args = (array) ->
@@ -74,25 +99,8 @@ methods.desc = (index) -> {DESC: yes, index}
 # TODO: Support `row`
 # methods.row = do ->
 
+Object.keys(methods).forEach (key) ->
+  define Database.prototype, key,
+    value: methods[key]
+
 module.exports = Database
-
-#
-# Helpers
-#
-
-createObject = (args) ->
-  object = {}
-
-  index = 0
-  while index < args.length
-
-    key = utils.resolve args[index]
-    assertType key, String
-
-    if args[index + 1] is undefined
-      throw Error "Argument #{index + 1} to object may not be `undefined`"
-
-    object[key] = utils.resolve args[index + 1]
-    index += 2
-
-  return object

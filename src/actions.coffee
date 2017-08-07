@@ -4,6 +4,8 @@
 utils = require "./utils"
 seq = require "./utils/seq"
 
+{isArray} = Array
+
 actions = exports
 
 actions.eq = (result, args) ->
@@ -13,7 +15,6 @@ actions.ne = (result, args) ->
   !equals result, args
 
 actions.gt = (result, args) ->
-  args = utils.resolve args
   prev = result
   for arg in args
     return no if prev <= arg
@@ -21,7 +22,6 @@ actions.gt = (result, args) ->
   return yes
 
 actions.lt = (result, args) ->
-  args = utils.resolve args
   prev = result
   for arg in args
     return no if prev >= arg
@@ -29,7 +29,6 @@ actions.lt = (result, args) ->
   return yes
 
 actions.ge = (result, args) ->
-  args = utils.resolve args
   prev = result
   for arg in args
     return no if prev < arg
@@ -37,7 +36,6 @@ actions.ge = (result, args) ->
   return yes
 
 actions.le = (result, args) ->
-  args = utils.resolve args
   prev = result
   for arg in args
     return no if prev > arg
@@ -45,31 +43,34 @@ actions.le = (result, args) ->
   return yes
 
 actions.or = (result, args) ->
-  args = utils.resolve args
   return result unless isFalse result
   for arg in args
     return arg unless isFalse arg
   return args.pop()
 
 actions.and = (result, args) ->
-  args = utils.resolve args
   return result if isFalse result
   for arg in args
     return arg if isFalse arg
   return args.pop()
 
+# TODO: Support dates and sequences.
 actions.add = (result, args) ->
-  utils.expect result, "NUMBER"
-  args = utils.resolve args
+  type = utils.typeOf result
+  unless /ARRAY|NUMBER|STRING/.test type
+    throw Error "Expected type ARRAY, NUMBER, or STRING but found #{type}"
+
   total = result
   for arg in args
-    utils.expect arg, "NUMBER"
-    total += arg
+    utils.expect arg, type
+    if type is "ARRAY"
+    then total = total.concat arg
+    else total += arg
+
   return total
 
 actions.sub = (result, args) ->
   utils.expect result, "NUMBER"
-  args = utils.resolve args
   total = result
   for arg in args
     utils.expect arg, "NUMBER"
@@ -78,7 +79,6 @@ actions.sub = (result, args) ->
 
 actions.mul = (result, args) ->
   utils.expect result, "NUMBER"
-  args = utils.resolve args
   total = result
   for arg in args
     utils.expect arg, "NUMBER"
@@ -87,7 +87,6 @@ actions.mul = (result, args) ->
 
 actions.div = (result, args) ->
   utils.expect result, "NUMBER"
-  args = utils.resolve args
   total = result
   for arg in args
     utils.expect arg, "NUMBER"
@@ -226,7 +225,7 @@ actions.merge = (result, args) ->
     return seq.merge result, args
 
   if resultType is "OBJECT"
-    return utils.merge result, utils.resolve args
+    return utils.merge result, args
 
   throw Error "Expected ARRAY or OBJECT but found #{resultType}"
 
@@ -237,7 +236,7 @@ actions.pluck = (result, args) ->
     return seq.pluck result, args
 
   if resultType is "OBJECT"
-    return utils.pluck result, utils.resolve args
+    return utils.pluck result, args
 
   throw Error "Expected ARRAY or OBJECT but found #{resultType}"
 
@@ -248,7 +247,7 @@ actions.without = (result, args) ->
     return seq.without result, args
 
   if resultType is "OBJECT"
-    return utils.without result, utils.resolve args
+    return utils.without result, args
 
   throw Error "Expected ARRAY or OBJECT but found #{resultType}"
 
@@ -259,13 +258,8 @@ actions.update = (result, patch) ->
 
 actions.replace = (row, values) ->
 
-  unless @type isnt "SELECTION"
+  if @type isnt "SELECTION"
     throw Error "Expected type SELECTION but found #{@type}"
-
-  if values is undefined
-    throw Error "Argument 1 to replace may not be `undefined`"
-
-  values = utils.resolve values
 
   table = @db._tables[@tableId]
   if values is null
@@ -305,7 +299,6 @@ actions.delete = (result) ->
 #
 
 equals = (result, args) ->
-  args = utils.resolve args
   for arg in args
     return no unless utils.equals result, arg
   return yes
@@ -331,29 +324,16 @@ sortDescending = (index) -> (a, b) ->
 
 updateRows = (rows, patch) ->
 
-  unless @hasRows
-    throw Error "Expected type SELECTION but found SEQUENCE"
+  if @type isnt "SEQUENCE"
+    throw Error "Expected type SEQUENCE but found #{@type}"
 
   unless rows.length
     return {replaced: 0, unchanged: 0}
 
-  if utils.isQuery patch
-    patch = patch._run()
-    assertType patch, Object
+  if patch is null
+    return {replaced: 0, unchanged: rows.length}
 
-  else
-    assertType patch, Object
-    patch = utils.resolve patch
-
-  if utils.isQuery options
-    options = options._run()
-    assertType options, Object
-
-  else if options?
-    assertType options, Object
-    options = utils.resolve options
-
-  else options = {}
+  utils.expect patch, "OBJECT"
 
   replaced = 0
   for row in rows
@@ -364,33 +344,21 @@ updateRows = (rows, patch) ->
 
 updateRow = (row, patch) ->
 
-  unless @rowId?
-    throw Error "Expected type SELECTION but found DATUM"
+  if @type isnt "SELECTION"
+    throw Error "Expected type SELECTION but found #{@type}"
 
-  if patch is undefined
-    throw Error "Argument 1 to update may not be `undefined`"
-
-  unless row
+  if row is null
     return {replaced: 0, skipped: 1}
 
-  if utils.isQuery patch
-    patch = patch._run()
-    if patch isnt null
-      assertType patch, Object
-
-  else if patch isnt null
-    assertType patch, Object
-    patch = utils.resolve patch
-
-  if patch and utils.update row, patch
+  if utils.update row, patch
     return {replaced: 1, unchanged: 0}
 
   return {replaced: 0, unchanged: 1}
 
 deleteRows = (rows) ->
 
-  unless @hasRows
-    throw Error "Expected type SELECTION but found SEQUENCE"
+  if @type isnt "SEQUENCE"
+    throw Error "Expected type SEQUENCE but found #{@type}"
 
   unless rows.length
     return {deleted: 0}
@@ -407,11 +375,11 @@ deleteRows = (rows) ->
 
 deleteRow = (row) ->
 
-  unless @rowId?
-    throw Error "Expected type SELECTION but found DATUM"
-
-  unless row
+  if row is null
     return {deleted: 0, skipped: 1}
+
+  if @type isnt "SELECTION"
+    throw Error "Expected type SELECTION but found #{@type}"
 
   @db._tables[@tableId].splice @rowIndex, 1
   return {deleted: 1, skipped: 0}

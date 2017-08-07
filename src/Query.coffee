@@ -9,30 +9,43 @@ utils = require "./utils"
 
 {isArray} = Array
 
+define = Object.defineProperty
+
 Query = (parent, type) ->
-  self = (key) -> self.bracket arguments
-  self._db = parent._db
-  self._parent = parent
-  self._type = type if type
-  return setType self, Query
+  query = (key) -> query.bracket arguments
 
-methods = Query.prototype
+  if parent
+    query._db = parent._db
+    query._type = type or parent._type
+    query._parent = parent
+  else
+    query._db = null
+    query._type = type or null
 
-methods.default = (value) ->
-  Query._default this, value
+  return setType query, Query
 
 # Run a query once, and reuse its result.
 Result = require("./Result")(Query)
 
-# TODO: Support variadic arguments.
-methods.do = (callback) ->
-  Result(this)._do callback
-
+# Define methods with infinite arity.
 variadic = (keys) ->
   keys.split(" ").forEach (key) ->
     methods[key] = ->
       @_then key, arguments
     return
+
+#
+# Public methods
+#
+
+methods = {}
+
+methods.default = (value) ->
+  Query._default this, value
+
+# TODO: Support variadic arguments.
+methods.do = (callback) ->
+  Result(this)._do callback
 
 variadic "eq ne gt lt ge le or and add sub mul div"
 
@@ -69,15 +82,13 @@ methods.delete = ->
 
 methods.run = ->
   Promise.resolve()
-    .then Query._run.bind null, this
+    .then @_run.bind this
 
 methods.then = (onFulfilled) ->
   @run().then onFulfilled
 
 methods.catch = (onRejected) ->
   @run().catch onRejected
-
-module.exports = Query
 
 #
 # Internal
@@ -112,54 +123,71 @@ methods._parseArgs = ->
   @_args = args
   return
 
-methods._eval = (ctx, result) ->
+methods._eval = (ctx) ->
   action = @_action
+  result = @_parent._eval ctx
+
+  if isConstructor action, Function
+    return action.call ctx, result
 
   if isConstructor action, String
     args = utils.resolve @_args
     arity = getArity(action)[1]
+    result =
+      if arity is 0
+      then actions[action].call ctx, result
+      else if arity is 1
+      then actions[action].call ctx, result, args[0]
+      else if arity is 2
+      then actions[action].call ctx, result, args[0], args[1]
+      else actions[action].call ctx, result, args
 
   ctx.type =
     if isConstructor @_type, Function
     then @_type.call this, ctx, args
     else @_type
 
-  if isConstructor action, Function
-    return action.call ctx, result
+  return result
 
-  if action is undefined
-    return result
+methods._run = (ctx = {}) ->
+  ctx.db = @_db
+  result = @_eval ctx
+  if /TABLE|SEQUENCE|SELECTION/.test ctx.type
+    return utils.clone result
+  return result
 
-  if arity is 0
-    return actions[@_action].call ctx, result
+#
+# Static methods
+#
 
-  if arity is 1
-    return actions[@_action].call ctx, result, args[0]
+statics = {}
 
-  if arity is 2
-    return actions[@_action].call ctx, result, args[0], args[1]
+statics._default = (parent, value) ->
 
-  return actions[@_action].call ctx, result, args
+  unless utils.isQuery value
+    value = Query._expr value
 
-methods._run = (ctx) ->
-  result = @_parent._run ctx
-  unless ctx.error
-    return @_eval ctx, result
-
-Query._default = (parent, value) ->
   self = Query parent
-  self._run = (ctx) ->
-    result = self._parent._run ctx
-    throw ctx.error unless isNullError ctx.error
-    return result ? value
+  self._eval = (ctx) ->
+    try result = parent._eval ctx
+    catch error
+      throw error unless isNullError error
+    return result ? value._eval ctx
+
   return self
 
-Query._expr = (expr) ->
+statics._expr = (expr) ->
 
   if expr is undefined
     throw Error "Cannot convert `undefined` with r.expr()"
 
-  if isArray(expr) or isConstructor(expr, Object)
+  self = Query()
+
+  if utils.isQuery expr
+    self._eval = (ctx) ->
+      return expr._run ctx
+
+  else if isArrayOrObject expr
     keys = Object.keys expr
     for key in keys
       value = expr[key]
@@ -170,24 +198,40 @@ Query._expr = (expr) ->
       else if value._type isnt "DATUM"
         throw Error "Expected type DATUM but found #{value._type}"
 
-  return Query
-    _run: -> utils.resolve expr
+    self._type = "DATUM"
+    self._eval = (ctx) ->
+      ctx.type = @_type
+      return utils.resolve expr
 
-Query._run = (query, ctx) ->
-  ctx = Object.assign {db: query._db}, ctx
-  result = query._run ctx
-  throw ctx.error if ctx.error
+  else
+    self._type = "DATUM"
+    self._eval = (ctx) ->
+      ctx.type = @_type
+      return expr
 
-  delete ctx.db
-  console.log "context = " + JSON.stringify ctx, null, 2
+  return self
 
-  if /TABLE|SEQUENCE|SELECTION/.test ctx.type
-    return utils.clone result
-  return result
+#
+# Exports
+#
+
+Object.keys(methods).forEach (key) ->
+  define Query.prototype, key,
+    value: methods[key]
+    writable: yes
+
+Object.keys(statics).forEach (key) ->
+  define Query, key,
+    value: statics[key]
+
+module.exports = Query
 
 #
 # Helpers
 #
+
+isArrayOrObject = (value) ->
+  isArray(value) or isConstructor(value, Object)
 
 isNullError = (error) ->
   !error or /(Index out of bounds|No attribute|null)/i.test error.message
@@ -240,8 +284,8 @@ getType = do ->
     replace: "DATUM"
     delete: "DATUM"
 
-  return (query) ->
-    types[query._action]
+  return (action) ->
+    types[action]
 
 getArity = do ->
 
