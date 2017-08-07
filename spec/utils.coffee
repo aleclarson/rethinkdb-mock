@@ -170,5 +170,5 @@ describe "utils.merge()", ->
   # This allows for proper merging of one row into another.
   it "clones any merged arrays", ->
     array = [1]
-    res = utils.merge {}, {array}
+    res = utils.merge {}, [{array}]
     expect(res.array is array).toBe false

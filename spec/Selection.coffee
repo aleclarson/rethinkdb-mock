@@ -1,3 +1,4 @@
+# TODO: Test `do` callback returning a selection/sequence/table
 
 rethinkdb = require ".."
 
@@ -13,18 +14,23 @@ describe "selection.replace()", ->
 
   it "replaces an entire row", ->
     query = users.get(1).replace {id: 1, name: "Shaggy"}
-    expect(query._run()).toEqual {replaced: 1}
+    expect(query._run()).toEqual {replaced: 1, unchanged: 0}
 
   it "knows if the row has not changed", ->
     query = users.get(1).replace {id: 1, name: "Shaggy"}
-    expect(query._run()).toEqual {unchanged: 1}
+    expect(query._run()).toEqual {replaced: 0, unchanged: 1}
 
-  it "throws an error if no primary key is defined", ->
+  it "throws if a row was not returned by the parent query", ->
+    query = db.expr(1).replace null
+    expect -> query._run()
+    .toThrowError "Expected type SELECTION but found DATUM"
+
+  it "throws if no primary key is defined", ->
     query = users.get(1).replace {name: "Fred"}
     expect -> query._run()
     .toThrowError "Inserted object must have primary key `id`"
 
-  it "throws an error if the primary key is different", ->
+  it "throws if the primary key is different", ->
     query = users.get(1).replace {id: 2, name: "Nathan"}
     expect -> query._run()
     .toThrowError "Primary key `id` cannot be changed"
@@ -35,7 +41,7 @@ describe "selection.replace()", ->
       user2 = users.get 2
 
       query = user2.replace null
-      expect(query._run()).toEqual {deleted: 1}
+      expect(query._run()).toEqual {deleted: 1, skipped: 0}
       expect(user2._run()).toBe null
 
       # Skip the replacement if no row exists.
@@ -44,40 +50,36 @@ describe "selection.replace()", ->
 describe "selection.update()", ->
 
   it "merges an object into an existing row", ->
-    users.get(1).update {online: true}
-    .then (res) ->
-      expect(1).toBe res.replaced
-      expect(true).toBe users.get(1)._run().online
+    user1 = users.get 1
+    query = user1.update {online: true}
+    expect(1).toBe query._run().replaced
+    expect(true).toBe user1._run().online
 
   it "knows if the row has not changed", ->
-    users.get(1).update {online: true}
-    .then (res) ->
-      expect(res.unchanged).toBe 1
+    query = users.get(1).update {online: true}
+    expect(1).toBe query._run().unchanged
 
   it "knows if the row does not exist", ->
-    users.get(100).update {name: "Hulk Hogan"}
-    .then (res) ->
-      expect(res.skipped).toBe 1
+    query = users.get(100).update {name: "Hulk Hogan"}
+    expect(1).toBe query._run().skipped
 
-  it "throws an error if the primary key is different", ->
-    users.get(1).update {id: 2, name: "Jeff"}
-    .run().catch (error) ->
-      expect(error.message).toBe "Primary key `id` cannot be changed"
+  it "throws if the primary key is different", ->
+    query = users.get(1).update {id: 2, name: "Jeff"}
+    expect -> query._run()
+    .toThrowError "Primary key `id` cannot be changed"
 
 describe "selection.merge()", ->
 
   it "merges an object into the result (without updating the row)", ->
     user1 = users.get 1
-    user1.merge {age: 23}
-    .then (res) ->
-      expect(res.age).toBe 23
-      expect(user1._run().age).toBe undefined
+    query = user1.merge {age: 23}
+    expect(23).toBe query._run().age
+    expect(undefined).toBe user1._run().age
 
 describe "selection.delete()", ->
 
   it "deletes a row from its table", ->
-    users.get(1).delete().then (res) ->
-      expect(res.deleted).toBe 1
-      expect(db._tables.users.length).toBe 0
-      users.get(1).then (res) ->
-        expect(res).toBe null
+    user1 = users.get 1
+    query = user1.delete()
+    expect(1).toBe query._run().deleted
+    expect(null).toBe user1._run()
