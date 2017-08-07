@@ -8,6 +8,7 @@
   "dependencies": {
     "assertType": "aleclarson/assertType#2.0.2",
     "isConstructor": "aleclarson/isConstructor#1.0.0",
+    "setKind": "aleclarson/setKind#1.0.0",
     "setType": "aleclarson/setType#1.0.0",
     "sliceArray": "aleclarson/sliceArray#1.0.0",
     "uuid": "^3.1.0"
