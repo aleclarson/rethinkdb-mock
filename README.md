@@ -60,7 +60,7 @@ const db = rethinkdb({
 
 3. Use it in your test suites:
 
-```
+```js
 describe('Some test suite', () => {
 
   // Reset the database between suites.
@@ -87,20 +87,49 @@ Be advised that anything on this list may not support specific use cases yet.
 
 - Nesting queries (most of the time)
 
-- `Database` methods
-  - `table`, `expr`, `object`, `desc`, `uuid`
+- `r.table()`
+- `r.expr()`
+- `r.object()`
+- `r.desc()`
+- `r.typeOf()`
+- `r.uuid()`
 
-- `Table` methods
-  - `insert`, `get`, `getAll`, `delete`
+- `table.get()`
+- `table.getAll()`
+- `table.insert()`
+- `table.delete()`
 
-- `Sequence` methods
-  - `()`, `do`, `nth`, `getField`, `hasFields`, `offsetsOf`, `update`, `filter`, `orderBy`, `limit`, `slice`, `pluck`, `without`, `fold`, `delete`
-
-- `Selection` methods
-  - `()`, `do`, `eq`, `ne`, `merge`, `default`, `getField`, `hasFields`, `without`, `pluck`, `replace`, `update`, `delete`
-
-- `Datum` methods
-  - `()`, `do`, `eq`, `ne`, `gt`, `lt`, `ge`, `le`, `add`, `sub`, `mul`, `div`, `and`, `or`, `merge`, `default`, `getField`, `hasFields`, `without`, `pluck`
+- `query()`
+- `query.bracket()`
+- `query.nth()`
+- `query.getField()`
+- `query.hasFields()`
+- `query.offsetsOf()`
+- `query.count()`
+- `query.limit()`
+- `query.slice()`
+- `query.filter()`
+- `query.fold()`
+- `query.merge()`
+- `query.pluck()`
+- `query.without()`
+- `query.replace()`
+- `query.update()`
+- `query.delete()`
+- `query.default()`
+- `query.do()`
+- `query.eq()`
+- `query.ne()`
+- `query.gt()`
+- `query.lt()`
+- `query.ge()`
+- `query.le()`
+- `query.add()`
+- `query.sub()`
+- `query.mul()`
+- `query.div()`
+- `query.and()`
+- `query.or()`
 
 ---
 
@@ -109,48 +138,80 @@ Be advised that anything on this list may not support specific use cases yet.
 This list may not be exhaustive and will be updated accordingly.
 
 - `r.row`
+- `r.do()`
+- `r.args()`
+- `r.tableCreate()`
+- `r.tableList()`
+- `r.tableDrop()`
+- `r.indexCreate()`
+- `r.indexList()`
+- `r.indexDrop()`
+- `r.indexRename()`
+- `r.indexStatus()`
+- `r.indexWait()`
+- `r.range()`
+- `r.error()`
+- `r.js()`
+- `r.json()`
+- `r.http()`
 
-- Binary support
-
-- Changefeeds
-
-- `tableCreate`, `tableList`, `tableDrop`
-- `indexCreate`, `indexList`, `indexDrop`, `indexRename`, `indexStatus`, `indexWait`
-- `sync`
-- `between`
-
-- Joins
-  - `innerJoin`, `outerJoin`, `eqJoin`, `zip`
-
-- Aggregation
-  - `group`, `ungroup`, `reduce`, `count`, `sum`, `avg`, `min`, `max`, `distinct`, `contains`
-
-- Transformations
-  - `map`, `withFields`, `concatMap`, `skip`, `isEmpty`, `union`, `sample`
-
-- Set methods
-  - `setInsert`, `setUnion`, `setIntersection`, `setDifference`
-
-- Array methods
-  - `append`, `prepend`, `difference`, `insertAt`, `spliceAt`, `deleteAt`, `changeAt`
-
-- Object methods
-  - `keys`, `values`, `literal`
-
-- String manipulation
-  - `match`, `split`, `upcase`, `downcase`
-
-- Math methods
-  - `mod`, `not`, `random`, `round`, `ceil`, `floor`
-
-- Control structures
-  - `do`, `args`, `branch`, `binary`, `forEach`, `range`, `error`, `js`, `coerceTo`, `typeOf`, `info`, `json`, `toJSON`, `http`
-
-- Date/time methods
-
-- Geospatial commands
+- `query.branch()`
+- `query.info()`
+- `query.sync()`
+- `query.toJSON()`
+- `query.between()`
+- `query.forEach()`
+- `query.coerceTo()`
+- `query.innerJoin()`
+- `query.outerJoin()`
+- `query.eqJoin()`
+- `query.zip()`
+- `query.group()`
+- `query.ungroup()`
+- `query.reduce()`
+- `query.distinct()`
+- `query.contains()`
+- `query.map()`
+- `query.withFields()`
+- `query.concatMap()`
+- `query.skip()`
+- `query.isEmpty()`
+- `query.sample()`
+- `query.setInsert()`
+- `query.setUnion()`
+- `query.setIntersection()`
+- `query.setDifference()`
+- `query.append()`
+- `query.prepend()`
+- `query.union()`
+- `query.difference()`
+- `query.insertAt()`
+- `query.spliceAt()`
+- `query.deleteAt()`
+- `query.changeAt()`
+- `query.keys()`
+- `query.values()`
+- `query.literal()`
+- `query.match()`
+- `query.split()`
+- `query.upcase()`
+- `query.downcase()`
+- `query.sum()`
+- `query.avg()`
+- `query.min()`
+- `query.max()`
+- `query.mod()`
+- `query.not()`
+- `query.random()`
+- `query.round()`
+- `query.ceil()`
+- `query.floor()`
 
 - Administration methods
+- Geospatial methods
+- Date/time methods
+- Binary support
+- Changefeeds
 
 ---
 
