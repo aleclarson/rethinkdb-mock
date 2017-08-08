@@ -1,5 +1,5 @@
 
-# rethinkdb-mock v0.2.1
+# rethinkdb-mock v0.3.0
 
 An in-memory RethinkDB used for testing.
 
@@ -40,7 +40,7 @@ If this doesn't convince you, please open an issue explaining your reasoning! :+
 1. Install from Github:
 
 ```sh
-npm install --save-dev aleclarson/rethinkdb-mock#0.1.0
+npm install --save-dev aleclarson/rethinkdb-mock#0.3.0
 ```
 
 2. Put some boilerplate in your test environment:
