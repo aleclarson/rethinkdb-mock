@@ -45,7 +45,7 @@ describe "selection.replace()", ->
       expect(user2._run()).toBe null
 
       # Skip the replacement if no row exists.
-      expect(query._run()).toEqual {skipped: 1}
+      expect(query._run()).toEqual {deleted: 0, skipped: 1}
 
 describe "selection.update()", ->
 

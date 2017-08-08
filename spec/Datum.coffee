@@ -1,5 +1,6 @@
 
 rethinkdb = require ".."
+utils = require "../js/utils"
 
 db = rethinkdb()
 
@@ -28,7 +29,7 @@ describe "datum.default()", ->
     expect(query._run()).toBe 1
 
   it "does not avoid other errors", ->
-    query = db.expr(undefined).default 1
+    query = db.expr(1).add("").default 1
     expect -> query._run()
     .toThrow()
 
@@ -170,3 +171,100 @@ describe "datum.add()", ->
     result = query._run()
     expect(result).not.toBe arr
     expect(result).toEqual [1, 2, 3]
+
+describe "datum.pluck()", ->
+
+  it "copies the specified keys from one object to a new object", ->
+    input = {a: 1, b: 2, c: 3}
+    query = db.expr(input).pluck "a", "b"
+    output = query._run()
+    expect(output).toEqual {a: 1, b: 2}
+    expect(output).not.toBe input
+
+  it "ignores undefined values", ->
+    query = db.expr(a: 1).pluck "a", "b"
+    expect(query._run()).toEqual {a: 1}
+
+  it "supports nested arrays", ->
+    query = db.expr(a: 1).pluck ["a"]
+    expect(query._run()).toEqual {a: 1}
+
+  # it "supports nested queries", ->
+
+  describe "key mapping", ->
+
+    it "uses an object to pluck keys", ->
+      query = db.expr(a: 1).pluck {a: true, b: true}
+      expect(query._run()).toEqual {a: 1}
+
+    it "supports strings as values", ->
+      input = {a: {x: 1, y: 1}, b: {z: 1}, c: 1}
+      query = db.expr(input).pluck {a: "x", b: "x", c: "x"}
+      expect(query._run()).toEqual {a: {x: 1}}
+
+    it "supports objects as values", ->
+      input = {a: {x: 1, y: 1}, b: {z: 1}, c: 1}
+      query = db.expr(input).pluck {a: {x: true}, b: {x: true}, c: {x: true}}
+      expect(query._run()).toEqual {a: {x: 1}}
+
+    it "supports arrays as values", ->
+      input = {a: {x: 1, y: 1}, b: {z: 1}, c: 1}
+      query = db.expr(input).pluck {a: ["x"], b: ["x"], c: ["x"]}
+      expect(query._run()).toEqual {a: {x: 1}}
+
+describe "datum.without()", ->
+
+  it "copies the unspecified keys from one object to a new object", ->
+    input = {a: 1, b: 2, c: 3}
+    query = db.expr(input).without "a", "c"
+    output = query._run()
+    expect(output).toEqual {b: 2}
+    expect(output).not.toBe input
+
+  it "supports nested arrays", ->
+    query = db.expr(a: 1, b: 2, c: 3).without ["a"], ["c"]
+    expect(query._run()).toEqual {b: 2}
+
+  # it "supports nested objects", ->
+
+  # it "supports nested queries", ->
+
+describe "datum.merge()", ->
+
+  it "creates a new object by merging all given objects from left to right", ->
+    obj = {a: 0}
+    query = db.expr(obj).merge {a: 1, b: 0}, {b: 1, c: 1}
+    res = query._run()
+    expect(res).not.toBe obj
+    expect(res).toEqual {a: 1, b: 1, c: 1}
+
+  it "merges recursively", ->
+    query = db.expr(a: {b: {c: 1}}).merge {a: {b: {d: 2}, e: 3}}
+    equal = utils.equals query._run(), {a: {b: {c: 1, d: 2}, e: 3}}
+    expect(equal).toBe true
+
+  it "does not merge arrays", ->
+    query = db.expr(a: [1, 2]).merge {a: [3]}
+    expect(query._run()).toEqual {a: [3]}
+
+  it "clones merged arrays", ->
+    array = [1]
+    query = db.expr({}).merge {array}
+    res = query._run()
+    expect(res.array).toEqual array
+    expect(res.array).not.toBe array
+
+  it "overwrites the first argument if an input is not an object", ->
+
+    query = db.expr({}).merge 1
+    expect(query._run()).toBe 1
+
+    query = db.expr({}).merge {a: 1}, ""
+    expect(query._run()).toBe ""
+
+    query = db.expr({}).merge [1]
+    expect(query._run()).toEqual [1]
+
+    # Another object is created if a non-object input is followed by an object.
+    query = db.expr({}).merge {a: 1}, null, {b: 2}
+    expect(query._run()).toEqual {b: 2}

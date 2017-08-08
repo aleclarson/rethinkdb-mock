@@ -8,16 +8,15 @@ users = db.table "users"
 describe "sequence()", ->
 
   beforeAll ->
-    db.init users: []
-    Promise.all [
-      users.insert {id: 1, name: "Betsy", gender: "F"}
-      users.insert {id: 2, name: "Sheila", gender: "F", preference: "M"}
-      users.insert {id: 3, name: "Alec", gender: "M", preference: "F"}
+    db.init users: [
+      {id: 1, name: "Betsy", gender: "F"}
+      {id: 2, name: "Sheila", gender: "F", preference: "M"}
+      {id: 3, name: "Alec", gender: "M", preference: "F"}
     ]
 
   it "can get a row by index", ->
     res = users(0)._run()
-    expect(res).toBe db._tables.users[0]
+    expect(res).toEqual db._tables.users[0]
 
   it "can get a field from each row in the sequence", ->
     res = users("gender")._run()
@@ -31,6 +30,11 @@ describe "sequence.nth()", ->
     res = users.nth(1)._run()
     expect(res).not.toBe db._tables.users[1]
     expect(res.id).toBe 2
+
+  it "throws for indexes less than -1", ->
+    query = users.nth -2
+    expect -> query._run()
+    .toThrowError "Cannot use an index < -1 on a stream"
 
 describe "sequence.getField()", ->
 
