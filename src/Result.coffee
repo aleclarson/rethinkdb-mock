@@ -9,8 +9,8 @@ define = Object.defineProperty
 module.exports = (Query) ->
 
   Result = (parent) ->
-    self = (key) -> self.bracket arguments
-    self._db = parent._db or null
+    self = (key) -> self.bracket key
+    self._db = parent._db
     self._parent = parent
     return setType self, Result
 
@@ -28,17 +28,19 @@ module.exports = (Query) ->
     return this
 
   methods._eval = evalQuery = (ctx) ->
-
-    @_context = ctx
     @_result = @_parent._eval ctx
+
     if /TABLE|SEQUENCE/.test ctx.type
       throw Error "Expected type DATUM but found #{ctx.type}"
 
+    @_context = ctx
     @_eval = getResult
     result = @_query._eval {}
     @_eval = evalQuery
 
-    @_result = undefined
+    delete @_result
+    delete @_context
+
     return result
 
   getResult = (ctx) ->

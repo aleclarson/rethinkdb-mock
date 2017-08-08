@@ -1,7 +1,5 @@
-# Utilities for sequences
 
 isConstructor = require "isConstructor"
-assertType = require "assertType"
 
 utils = require "."
 
@@ -9,21 +7,11 @@ utils = require "."
 
 seq = exports
 
-seq.bracket = (array, value) ->
-
-  if isConstructor value, Number
-    return seq.nth array, value
-
-  if isConstructor value, String
-    return seq.getField array, value
-
-  throw Error "Expected a Number or String!"
-
 # TODO: Prevent indexes less than -1 for streams.
 seq.nth = (array, index) ->
-  utils.expectArray array
 
-  assertType index, Number
+  if index < -1 and /TABLE|SEQUENCE/.test @type
+    throw Error "Cannot use an index < -1 on a stream"
 
   if index < 0
     index = array.length + index
@@ -34,25 +22,21 @@ seq.nth = (array, index) ->
   return array[index]
 
 seq.getField = (array, attr) ->
-  utils.expect attr, "STRING"
-
   results = []
+
   for value in array
-    assertType value, Object
+    utils.expect value, "OBJECT"
     if value.hasOwnProperty attr
       results.push value[attr]
 
   return results
 
 seq.hasFields = (array, attrs) ->
-
-  for attr in attrs
-    utils.expect attr, "STRING"
-
   results = []
+
   for value in array
     utils.expect value, "OBJECT"
-    if hasFields value, attrs
+    if utils.hasFields value, attrs
       results.push value
 
   return results
@@ -60,7 +44,7 @@ seq.hasFields = (array, attrs) ->
 seq.filter = (array, filter, options) ->
 
   if options isnt undefined
-    assertType options, Object
+    utils.expect options, "OBJECT"
     # TODO: Support `default` option
     # TODO: Support sub-queries in the `options` object.
 
@@ -68,7 +52,7 @@ seq.filter = (array, filter, options) ->
   if isConstructor filter, Object
 
     matchers.push (values) ->
-      assertType values, Object
+      utils.expect values, "OBJECT"
       return yes
 
     Object.keys(filter).forEach (key) ->
@@ -99,8 +83,8 @@ seq.slice = (array, args) ->
   [startIndex, endIndex] = args
   endIndex ?= array.length
 
-  assertType startIndex, Number
-  assertType endIndex, Number
+  utils.expect startIndex, "NUMBER"
+  utils.expect endIndex, "NUMBER"
 
   if options.leftBound is "open"
     startIndex += 1
@@ -112,6 +96,7 @@ seq.slice = (array, args) ->
 
 seq.merge = (rows, args) ->
   rows.map (row) ->
+    utils.expect row, "OBJECT"
     utils.merge row, args
 
 seq.pluck = (rows, args) ->
@@ -121,12 +106,3 @@ seq.pluck = (rows, args) ->
 seq.without = (rows, args) ->
   rows.map (row) ->
     utils.without row, args
-
-#
-# Helpers
-#
-
-hasFields = (value, attrs) ->
-  for attr in attrs
-    return no unless value.hasOwnProperty attr
-  return yes

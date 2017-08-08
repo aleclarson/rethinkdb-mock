@@ -41,18 +41,7 @@ methods.tableDrop = (tableId) ->
 methods.uuid = require "./utils/uuid"
 
 methods.typeOf = (value) ->
-
-  if value is undefined
-    throw Error "Cannot convert `undefined` with r.expr()"
-
-  self = Query()
-  self._type = "DATUM"
-  self._eval = (ctx) ->
-    ctx.type = @_type
-    if utils.isQuery value
-      return utils.typeOf value._run()
-    return utils.typeOf value
-  return self
+  Query._expr(value).typeOf()
 
 # TODO: You cannot have a sequence nested in an expression. You must use `coerceTo` first.
 methods.expr = Query._expr

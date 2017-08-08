@@ -2,6 +2,7 @@
 isConstructor = require "isConstructor"
 assertType = require "assertType"
 sliceArray = require "sliceArray"
+hasKeys = require "hasKeys"
 
 {isArray} = Array
 
@@ -25,30 +26,17 @@ utils.expect = (value, expectedType) ->
   if type isnt expectedType
     throw Error "Expected type #{expectedType} but found #{type}"
 
-utils.expectArray = (value) ->
-  type = utils.typeOf value
-  if type isnt "ARRAY"
-    throw Error "Cannot convert #{type} to SEQUENCE"
-
 utils.isQuery = (queryTypes, value) ->
   return no unless value
   return yes if ~queryTypes.indexOf value.constructor
   return no
 
 utils.getField = (value, attr) ->
-
-  if utils.isQuery attr
-    attr = attr._run()
-
-  utils.expect attr, "STRING"
-  unless value.hasOwnProperty attr
-    throw Error "No attribute `#{attr}` in object"
-
-  return value[attr]
+  return value[attr] if value.hasOwnProperty attr
+  throw Error "No attribute `#{attr}` in object"
 
 utils.hasFields = (value, attrs) ->
-  for attr, index in attrs
-    utils.expect attr, "STRING"
+  for attr in attrs
     return no unless value.hasOwnProperty attr
   return yes
 
@@ -87,10 +75,8 @@ utils.without = (input, keys) ->
   return output
 
 utils.merge = (output, inputs) ->
-  assertType output, Object
-  assertType inputs, Array
-
   output = utils.clone output
+
   for input in inputs
     output = merge output, input
 
@@ -168,7 +154,7 @@ pluckWithArray = (array, input, output) ->
   array = utils.flatten array
   for key in array
 
-    if typeof key is "string"
+    if isConstructor key, String
       if input.hasOwnProperty key
         output[key] = input[key]
 
@@ -186,18 +172,27 @@ pluckWithObject = (object, input, output) ->
       if input.hasOwnProperty key
         output[key] = input[key]
 
-    else if typeof value is "string"
-      if isConstructor input[key], Object
-        output[key] = {}
-        output[key][value] = input[key][value]
+    else if isConstructor value, String
+      continue unless isConstructor input[key], Object
+      continue unless input[key].hasOwnProperty value
+      output[key] = {} unless isConstructor output[key], Object
+      output[key][value] = input[key][value]
 
     else if isArray value
-      if isConstructor input[key], Object
-        output[key] = pluckWithArray value, input[key], output
+      continue unless isConstructor input[key], Object
+      if isConstructor output[key], Object
+        pluckWithArray value, input[key], output[key]
+      else
+        value = pluckWithArray value, input[key], {}
+        output[key] = value if hasKeys value
 
     else if isConstructor value, Object
-      if isConstructor input[key], Object
-        output[key] = pluckWithObject value, input[key], {}
+      continue unless isConstructor input[key], Object
+      if isConstructor output[key], Object
+        pluckWithObject value, input[key], output[key]
+      else
+        value = pluckWithObject value, input[key], {}
+        output[key] = value if hasKeys value
 
     else throw TypeError "Invalid path argument"
 
@@ -209,14 +204,15 @@ merge = (output, input) ->
   # Non-objects overwrite the output.
   return input unless isConstructor input, Object
 
-  # Ensure the output is an object before merging.
-  output = {} unless isConstructor output, Object
+  # Nothing to merge into.
+  return input unless isConstructor output, Object
 
   for key, value of input
-    output[key] =
+    if isConstructor value, Object
       if isConstructor output[key], Object
       then merge output[key], value
-      else value
+      else output[key] = value
+    else output[key] = value
 
   return output
 

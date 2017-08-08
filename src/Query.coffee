@@ -12,7 +12,7 @@ utils = require "./utils"
 define = Object.defineProperty
 
 Query = (parent, type) ->
-  query = (key) -> query.bracket arguments
+  query = (key) -> query.bracket key
 
   if parent
     query._db = parent._db
@@ -53,7 +53,7 @@ methods.nth = (index) ->
   @_then "nth", arguments
 
 methods.bracket = (key) ->
-  @_then "bracket", key
+  @_then "bracket", arguments
 
 methods.getField = (field) ->
   @_then "getField", arguments
@@ -70,6 +70,9 @@ methods.filter = (filter, options) ->
   @_then "filter", arguments
 
 variadic "slice merge pluck without"
+
+methods.typeOf = ->
+  @_then "typeOf"
 
 methods.update = (patch) ->
   @_then "update", arguments
@@ -181,6 +184,9 @@ statics._expr = (expr) ->
   if expr is undefined
     throw Error "Cannot convert `undefined` with r.expr()"
 
+  if isConstructor(expr, Number) and not isFinite expr
+    throw Error "Cannot convert `#{expr}` to JSON"
+
   self = Query()
 
   if utils.isQuery expr
@@ -188,15 +194,20 @@ statics._expr = (expr) ->
       return expr._run ctx
 
   else if isArrayOrObject expr
-    keys = Object.keys expr
-    for key in keys
-      value = expr[key]
+    values = expr
+    expr = if isArray values then [] else {}
+    Object.keys(values).forEach (key) ->
+      value = values[key]
 
       unless utils.isQuery value
         expr[key] = Query._expr value
+        return
 
-      else if value._type isnt "DATUM"
-        throw Error "Expected type DATUM but found #{value._type}"
+      if value._type is "DATUM"
+        expr[key] = value
+        return
+
+      throw Error "Expected type DATUM but found #{value._type}"
 
     self._type = "DATUM"
     self._eval = (ctx) ->
@@ -280,6 +291,7 @@ getType = do ->
     merge: "DATUM"
     pluck: "DATUM"
     without: "DATUM"
+    typeOf: "DATUM"
     update: "DATUM"
     replace: "DATUM"
     delete: "DATUM"
@@ -316,6 +328,7 @@ getArity = do ->
     merge: [1, Infinity]
     pluck: [1, Infinity]
     without: [1, Infinity]
+    typeOf: [0, 0]
     getAll: [1, Infinity]
     insert: [1, 2]
     update: [1, 1]

@@ -1,6 +1,8 @@
 # TODO: Support time math with other times or numbers.
 # TODO: Comparison of objects/arrays with `gt`, `lt`, `ge`, `le`
 
+isConstructor = require "isConstructor"
+
 utils = require "./utils"
 seq = require "./utils/seq"
 
@@ -93,54 +95,63 @@ actions.div = (result, args) ->
     total /= arg
   return null
 
-actions.nth = seq.nth
+actions.nth = (result, index) ->
+  utils.expect result, "ARRAY"
+  utils.expect index, "NUMBER"
+  return seq.nth result, index
 
 actions.bracket = (result, key) ->
+  type = utils.typeOf key
 
-  if utils.isQuery key
-    key = key._run()
-
-  keyType = utils.typeOf key
-  if keyType is "NUMBER"
+  if type is "NUMBER"
     return seq.nth result, key
 
-  if keyType isnt "STRING"
-    throw Error "Expected NUMBER or STRING as second argument to `bracket` but found #{keyType}"
+  if type isnt "STRING"
+    throw Error "Expected NUMBER or STRING as second argument to `bracket` but found #{type}"
 
-  resultType = utils.typeOf result
-  if resultType is "ARRAY"
-    return seq.bracket result, key
+  type = utils.typeOf result
 
-  if resultType is "OBJECT"
+  if type is "ARRAY"
+    return seq.getField result, key
+
+  if type is "OBJECT"
     return utils.getField result, key
 
-  throw Error "Expected ARRAY or OBJECT as first argument to `bracket` but found #{resultType}"
+  throw Error "Expected ARRAY or OBJECT as first argument to `bracket` but found #{type}"
 
 actions.getField = (result, attr) ->
-  resultType = utils.typeOf result
+  utils.expect attr, "STRING"
 
-  if resultType is "ARRAY"
+  type = utils.typeOf result
+
+  if type is "ARRAY"
     return seq.getField result, attr
 
-  if resultType is "OBJECT"
+  if type is "OBJECT"
     return utils.getField result, attr
 
-  throw Error "Expected ARRAY or OBJECT but found #{resultType}"
+  throw Error "Expected ARRAY or OBJECT but found #{type}"
 
+# TODO: Support key map validation.
 actions.hasFields = (result, attrs) ->
-  resultType = utils.typeOf result
+  attrs = utils.flatten attrs
 
-  if resultType is "ARRAY"
+  for attr in attrs
+    utils.expect attr, "STRING"
+
+  type = utils.typeOf result
+
+  if type is "ARRAY"
     return seq.hasFields result, attrs
 
-  if resultType is "OBJECT"
+  if type is "OBJECT"
     return utils.hasFields result, attrs
 
-  throw Error "Expected ARRAY or OBJECT but found #{resultType}"
+  throw Error "Expected ARRAY or OBJECT but found #{type}"
 
 # TODO: Support `offsetsOf` function argument
 actions.offsetsOf = (array, value) ->
-  utils.expectArray array
+  utils.expect array, "ARRAY"
 
   if value is undefined
     throw Error "Argument 1 to offsetsOf may not be `undefined`"
@@ -159,13 +170,7 @@ actions.offsetsOf = (array, value) ->
 # TODO: Support sorting by an array/object value.
 # TODO: Support `orderBy` function argument
 actions.orderBy = (array, value) ->
-  utils.expectArray array
-
-  if value is undefined
-    throw Error "Argument 1 to orderBy may not be `undefined`"
-
-  if utils.isQuery value
-    value = value._run()
+  utils.expect array, "ARRAY"
 
   if isConstructor value, Object
     {DESC, index} = value
@@ -178,22 +183,22 @@ actions.orderBy = (array, value) ->
     then sortDescending index
     else sortAscending index
 
-  assertType index, String
+  utils.expect index, "STRING"
   return array.slice().sort sorter
 
 actions.filter = (array, filter, options) ->
-  utils.expectArray array
+  utils.expect array, "ARRAY"
   return seq.filter array, filter, options
 
 actions.fold = ->
   throw Error "Not implemented"
 
 actions.count = (array) ->
-  utils.expectArray array
+  utils.expect array, "ARRAY"
   return array.length
 
-actions.limit = (result, count) ->
-  utils.expectArray result
+actions.limit = (array, count) ->
+  utils.expect array, "ARRAY"
 
   if utils.isQuery count
     count = count._run()
@@ -202,54 +207,57 @@ actions.limit = (result, count) ->
   if count < 0
     throw Error "Cannot call `limit` with a negative number"
 
-  return result.slice 0, count
+  return array.slice 0, count
 
 actions.slice = (result, args) ->
+  type = utils.typeOf result
 
-  resultType = utils.typeOf result
-  if resultType is "ARRAY"
+  if type is "ARRAY"
     return seq.slice result, args
 
-  if resultType is "BINARY"
+  if type is "BINARY"
     throw Error "`slice` does not support BINARY values (yet)"
 
-  if resultType is "STRING"
+  if type is "STRING"
     throw Error "`slice` does not support STRING values (yet)"
 
-  throw Error "Expected ARRAY, BINARY, or STRING, but found #{resultType}"
+  throw Error "Expected ARRAY, BINARY, or STRING, but found #{type}"
 
 actions.merge = (result, args) ->
-  resultType = utils.typeOf result
+  type = utils.typeOf result
 
-  if resultType is "ARRAY"
+  if type is "ARRAY"
     return seq.merge result, args
 
-  if resultType is "OBJECT"
+  if type is "OBJECT"
     return utils.merge result, args
 
-  throw Error "Expected ARRAY or OBJECT but found #{resultType}"
+  throw Error "Expected ARRAY or OBJECT but found #{type}"
 
 actions.pluck = (result, args) ->
-  resultType = utils.typeOf result
+  type = utils.typeOf result
 
-  if resultType is "ARRAY"
+  if type is "ARRAY"
     return seq.pluck result, args
 
-  if resultType is "OBJECT"
+  if type is "OBJECT"
     return utils.pluck result, args
 
-  throw Error "Expected ARRAY or OBJECT but found #{resultType}"
+  throw Error "Expected ARRAY or OBJECT but found #{type}"
 
 actions.without = (result, args) ->
-  resultType = utils.typeOf result
+  args = utils.flatten args
+  type = utils.typeOf result
 
-  if resultType is "ARRAY"
+  if type is "ARRAY"
     return seq.without result, args
 
-  if resultType is "OBJECT"
+  if type is "OBJECT"
     return utils.without result, args
 
-  throw Error "Expected ARRAY or OBJECT but found #{resultType}"
+  throw Error "Expected ARRAY or OBJECT but found #{type}"
+
+actions.typeOf = utils.typeOf
 
 actions.update = (result, patch) ->
   if isArray result
@@ -324,8 +332,8 @@ sortDescending = (index) -> (a, b) ->
 
 updateRows = (rows, patch) ->
 
-  if @type isnt "SEQUENCE"
-    throw Error "Expected type SEQUENCE but found #{@type}"
+  if @type is "DATUM"
+    throw Error "Expected type SEQUENCE but found DATUM"
 
   unless rows.length
     return {replaced: 0, unchanged: 0}
