@@ -1,81 +1,112 @@
 
 rethinkdb = require ".."
 
-db = rethinkdb()
+global.db = rethinkdb()
+global.users = db.table "users"
 
-describe "db.expr()", ->
+describe "Database()", ->
 
-  it "converts a literal into a query", ->
-    expect(1).toBe db.expr(1)._run()
+  beforeAll ->
+    db.init users: []
 
-  it "throws if the value is undefined", ->
-    expect -> db.expr undefined
-    .toThrowError "Cannot convert `undefined` with r.expr()"
+  describe "()", ->
 
-  it "throws if the value is an imaginary number", ->
+    it "is shorthand for db.expr()", ->
+      expect(1).toBe db(1)._run()
 
-    expect -> db.expr NaN
-    .toThrowError "Cannot convert `NaN` to JSON"
+  describe ".expr()", ->
 
-    expect -> db.expr Infinity
-    .toThrowError "Cannot convert `Infinity` to JSON"
+    it "converts a literal into a query", ->
+      expect(1).toBe db.expr(1)._run()
 
-    expect -> db.expr -Infinity
-    .toThrowError "Cannot convert `-Infinity` to JSON"
+    it "throws if the value is undefined", ->
+      expect -> db.expr undefined
+      .toThrowError "Cannot convert `undefined` with r.expr()"
 
-  it "clones objects", ->
-    query = db.expr obj = {a: 1}
-    res = query._run()
-    expect(res).toEqual obj
-    expect(res).not.toBe obj
+    it "throws if the value is an imaginary number", ->
 
-  it "clones arrays", ->
-    query = db.expr arr = [1, 2]
-    res = query._run()
-    expect(res).toEqual arr
-    expect(res).not.toBe arr
+      expect -> db.expr NaN
+      .toThrowError "Cannot convert `NaN` to JSON"
 
-  # it "supports nested queries", ->
+      expect -> db.expr Infinity
+      .toThrowError "Cannot convert `Infinity` to JSON"
 
-describe "db.object()", ->
+      expect -> db.expr -Infinity
+      .toThrowError "Cannot convert `-Infinity` to JSON"
 
-  it "creates an object from key-value pairs", ->
-    query = db.object "a", 1, "b", 2
-    expect(query._run()).toEqual {a: 1, b: 2}
+    it "clones objects", ->
+      query = db.expr obj = {a: 1}
+      res = query._run()
+      expect(res).toEqual obj
+      expect(res).not.toBe obj
 
-  it "throws if a key is not a string", ->
-    query = db.object "a", 1, null, 2
-    expect -> query._run()
-    .toThrowError "Expected type STRING but found NULL"
+    it "clones arrays", ->
+      query = db.expr arr = [1, 2]
+      res = query._run()
+      expect(res).toEqual arr
+      expect(res).not.toBe arr
 
-  it "throws if a key has no value", ->
-    expect -> db.object "a", 1, "b"
-    .toThrowError "Expected an even number of arguments"
+    it "supports nested queries", ->
+      users.insert([{ id: 1, name: "Alec" }, {id: 2, name: "Marie"}])._run()
+      query = db.expr [ users.get(1), users.get(2) ]
+      expect(query._run()).toEqual db._tables.users
 
-  # it "supports nested queries", ->
+  describe ".object()", ->
 
-describe "db.typeOf()", ->
+    it "creates an object from key-value pairs", ->
+      query = db.object "a", 1, "b", 2
+      expect(query._run()).toEqual {a: 1, b: 2}
 
-  it "returns NULL for null literals", ->
-    query = db.typeOf null
-    expect(query._run()).toBe "NULL"
+    it "throws if a key is not a string", ->
+      query = db.object "a", 1, null, 2
+      expect -> query._run()
+      .toThrowError "Expected type STRING but found NULL"
 
-  it "returns BOOL for boolean literals", ->
-    query = db.typeOf true
-    expect(query._run()).toBe "BOOL"
+    it "throws if a key has no value", ->
+      expect -> db.object "a", 1, "b"
+      .toThrowError "Expected an even number of arguments"
 
-  it "returns STRING for string literals", ->
-    query = db.typeOf ""
-    expect(query._run()).toBe "STRING"
+    # it "supports nested queries", ->
 
-  it "returns NUMBER for number literals", ->
-    query = db.typeOf 0
-    expect(query._run()).toBe "NUMBER"
+  describe ".typeOf()", ->
 
-  it "returns ARRAY for array literals", ->
-    query = db.typeOf []
-    expect(query._run()).toBe "ARRAY"
+    it "returns NULL for null literals", ->
+      query = db.typeOf null
+      expect(query._run()).toBe "NULL"
 
-  it "returns OBJECT for object literals", ->
-    query = db.typeOf {}
-    expect(query._run()).toBe "OBJECT"
+    it "returns BOOL for boolean literals", ->
+      query = db.typeOf true
+      expect(query._run()).toBe "BOOL"
+
+    it "returns STRING for string literals", ->
+      query = db.typeOf ""
+      expect(query._run()).toBe "STRING"
+
+    it "returns NUMBER for number literals", ->
+      query = db.typeOf 0
+      expect(query._run()).toBe "NUMBER"
+
+    it "returns ARRAY for array literals", ->
+      query = db.typeOf []
+      expect(query._run()).toBe "ARRAY"
+
+    it "returns OBJECT for object literals", ->
+      query = db.typeOf {}
+      expect(query._run()).toBe "OBJECT"
+
+  describe ".table()", ->
+
+    it "gets every row in the table", ->
+      res = users._run()
+      expect(res).toEqual db._tables.users
+      expect(res).not.toBe db._tables.users
+
+    it "clones each row before returning the results", ->
+      users._run().forEach (res, i) ->
+        expect(res).toEqual db._tables.users[i]
+        expect(res).not.toBe db._tables.users[i]
+
+    it "throws if the table does not exist", ->
+      query = db.table "animals"
+      expect -> query._run()
+      .toThrowError "Table `animals` does not exist"

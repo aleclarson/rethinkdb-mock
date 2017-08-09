@@ -1,11 +1,5 @@
 
-rethinkdb = require ".."
-
-db = rethinkdb()
-
-users = db.table "users"
-
-describe "sequence()", ->
+describe "query._type === SEQUENCE", ->
 
   beforeAll ->
     db.init users: [
@@ -14,139 +8,141 @@ describe "sequence()", ->
       {id: 3, name: "Alec", gender: "M", preference: "F"}
     ]
 
-  it "can get a row by index", ->
-    res = users(0)._run()
-    expect(res).toEqual db._tables.users[0]
+  describe "()", ->
 
-  it "can get a field from each row in the sequence", ->
-    res = users("gender")._run()
-    expect(res).toEqual ["F", "F", "M"]
+    it "can get a row by index", ->
+      res = users(0)._run()
+      expect(res).toEqual db._tables.users[0]
 
-# describe "sequence.do()", ->
+    it "can get a field from each row in the sequence", ->
+      res = users("gender")._run()
+      expect(res).toEqual ["F", "F", "M"]
 
-describe "sequence.nth()", ->
+  # describe ".do()", ->
 
-  it "gets the nth row in the sequence", ->
-    res = users.nth(1)._run()
-    expect(res).not.toBe db._tables.users[1]
-    expect(res.id).toBe 2
+  describe ".nth()", ->
 
-  it "throws for indexes less than -1", ->
-    query = users.nth -2
-    expect -> query._run()
-    .toThrowError "Cannot use an index < -1 on a stream"
+    it "gets the nth row in the sequence", ->
+      res = users.nth(1)._run()
+      expect(res).not.toBe db._tables.users[1]
+      expect(res.id).toBe 2
 
-describe "sequence.getField()", ->
+    it "throws for indexes less than -1", ->
+      query = users.nth -2
+      expect -> query._run()
+      .toThrowError "Cannot use an index < -1 on a stream"
 
-  it "gets a field from each row in the sequence", ->
-    res = users.getField("gender")._run()
-    expect(res).toEqual ["F", "F", "M"]
+  describe ".getField()", ->
 
-  it "ignores rows where the field is undefined", ->
-    res = users.getField("preference")._run()
-    expect(res).toEqual ["M", "F"]
+    it "gets a field from each row in the sequence", ->
+      res = users.getField("gender")._run()
+      expect(res).toEqual ["F", "F", "M"]
 
-describe "sequence.offsetsOf()", ->
+    it "ignores rows where the field is undefined", ->
+      res = users.getField("preference")._run()
+      expect(res).toEqual ["M", "F"]
 
-  it "gets the index of every row matching the given value", ->
-    user2 = users.nth index = 2
-    res = users.offsetsOf(user2)._run()
-    expect(Array.isArray res).toBe true
-    expect(res.length).toBe 1
-    expect(index).toBe res[0]
+  describe ".offsetsOf()", ->
 
-describe "sequence.update()", ->
+    it "gets the index of every row matching the given value", ->
+      user2 = users.nth index = 2
+      res = users.offsetsOf(user2)._run()
+      expect(Array.isArray res).toBe true
+      expect(res.length).toBe 1
+      expect(index).toBe res[0]
 
-  it "updates every row in the sequence", ->
-    query = users.update {age: 23}
-    expect(query._run().replaced).toBe db._tables.users.length
-    for user in db._tables.users
-      expect(user.age).toBe 23
-    return
+  describe ".update()", ->
 
-  it "tracks how many rows were not updated", ->
-    query = users.update {age: 23}
-    expect(query._run().unchanged).toBe db._tables.users.length
+    it "updates every row in the sequence", ->
+      query = users.update {age: 23}
+      expect(query._run().replaced).toBe db._tables.users.length
+      for user in db._tables.users
+        expect(user.age).toBe 23
+      return
 
-  # TODO: Test updating with nested queries.
-  # it "works with nested queries", ->
+    it "tracks how many rows were not updated", ->
+      query = users.update {age: 23}
+      expect(query._run().unchanged).toBe db._tables.users.length
 
-  # TODO: Test filter/update combo.
-  # it "works after filtering", ->
+    # TODO: Test updating with nested queries.
+    # it "works with nested queries", ->
 
-describe "sequence.filter()", ->
+    # TODO: Test filter/update combo.
+    # it "works after filtering", ->
 
-  it "returns an array of rows matching the filter", ->
-    query = users.filter {gender: "F"}
-    res = query._run().map (row) -> row.name
-    expect(res).toEqual ["Betsy", "Sheila"]
+  describe ".filter()", ->
 
-  # it "supports nested objects", ->
+    it "returns an array of rows matching the filter", ->
+      query = users.filter {gender: "F"}
+      res = query._run().map (row) -> row.name
+      expect(res).toEqual ["Betsy", "Sheila"]
 
-  # it "supports nested arrays", ->
+    # it "supports nested objects", ->
 
-  # it "supports nested queries", ->
+    # it "supports nested arrays", ->
 
-describe "sequence.orderBy()", ->
+    # it "supports nested queries", ->
 
-  it "sorts the sequence using the given key", ->
-    query = users.orderBy "name"
-    res = query._run().map (row) -> row.name
-    expect(res).toEqual ["Alec", "Betsy", "Sheila"]
+  describe ".orderBy()", ->
 
-  # it "can sort using a sub-query", ->
+    it "sorts the sequence using the given key", ->
+      query = users.orderBy "name"
+      res = query._run().map (row) -> row.name
+      expect(res).toEqual ["Alec", "Betsy", "Sheila"]
 
-  # it "can sort in descending order", ->
+    # it "can sort using a sub-query", ->
 
-describe "sequence.limit()", ->
+    # it "can sort in descending order", ->
 
-  it "limits the number of results", ->
-    query = users.limit 2
-    res = query._run().map (row) -> row.id
-    expect(res).toEqual [1, 2]
+  describe ".limit()", ->
 
-describe "sequence.slice()", ->
+    it "limits the number of results", ->
+      query = users.limit 2
+      res = query._run().map (row) -> row.id
+      expect(res).toEqual [1, 2]
 
-  it "returns a range of results", ->
-    query = users.slice 1, 2
-    res = query._run().map (row) -> row.id
-    expect(res).toEqual [2]
+  describe ".slice()", ->
 
-  it "supports a closed right bound", ->
-    query = users.slice 1, 2, {rightBound: "closed"}
-    res = query._run().map (row) -> row.id
-    expect(res).toEqual [2, 3]
+    it "returns a range of results", ->
+      query = users.slice 1, 2
+      res = query._run().map (row) -> row.id
+      expect(res).toEqual [2]
 
-  it "supports an open left bound", ->
-    query = users.slice 0, 2, {leftBound: "open"}
-    res = query._run().map (row) -> row.id
-    expect(res).toEqual [2]
+    it "supports a closed right bound", ->
+      query = users.slice 1, 2, {rightBound: "closed"}
+      res = query._run().map (row) -> row.id
+      expect(res).toEqual [2, 3]
 
-  it "ranges from the given index to the last index (when only one index is given)", ->
-    query = users.slice 1
-    res = query._run().map (row) -> row.id
-    expect(res).toEqual [2, 3]
+    it "supports an open left bound", ->
+      query = users.slice 0, 2, {leftBound: "open"}
+      res = query._run().map (row) -> row.id
+      expect(res).toEqual [2]
 
-describe "sequence.pluck()", ->
+    it "ranges from the given index to the last index (when only one index is given)", ->
+      query = users.slice 1
+      res = query._run().map (row) -> row.id
+      expect(res).toEqual [2, 3]
 
-  it "plucks keys from each result", ->
-    query = users.pluck "name", "gender"
-    res = query._run()
-    expect(res.length).toBe db._tables.users.length
-    res.forEach (user) ->
-      expect(Object.keys user).toEqual ["name", "gender"]
+  describe ".pluck()", ->
 
-describe "sequence.without()", ->
+    it "plucks keys from each result", ->
+      query = users.pluck "name", "gender"
+      res = query._run()
+      expect(res.length).toBe db._tables.users.length
+      res.forEach (user) ->
+        expect(Object.keys user).toEqual ["name", "gender"]
 
-  it "excludes keys from each result", ->
-    query = users.without "id", "age", "preference"
-    res = query._run()
-    expect(res.length).toBe db._tables.users.length
-    res.forEach (user) ->
-      expect(Object.keys user).toEqual ["name", "gender"]
+  describe ".without()", ->
 
-describe "sequence.fold()", ->
+    it "excludes keys from each result", ->
+      query = users.without "id", "age", "preference"
+      res = query._run()
+      expect(res.length).toBe db._tables.users.length
+      res.forEach (user) ->
+        expect(Object.keys user).toEqual ["name", "gender"]
 
-describe "sequence.delete()", ->
+  describe ".fold()", ->
 
-  it "deletes every row in the sequence", ->
+  describe ".delete()", ->
+
+    it "deletes every row in the sequence", ->

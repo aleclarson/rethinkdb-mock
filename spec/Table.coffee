@@ -1,107 +1,86 @@
 
-rethinkdb = require ".."
-
-db = rethinkdb()
-
-users = db.table "users"
-
-describe "table.insert()", ->
+describe "Table()", ->
 
   beforeAll ->
     db.init users: []
 
-  it "appends a row", ->
-    query = users.insert {id: 1}
-    expect(1).toBe query._run().inserted
-    expect(1).toBe db._tables.users.length
+  describe ".insert()", ->
 
-  it "clones the row before inserting it", ->
-    query = users.insert row = {id: 2}
-    query._run()
-    user = db._tables.users[1]
-    expect(row).not.toBe user
-    expect(row.id).toBe user.id
+    it "appends a row", ->
+      query = users.insert {id: 1}
+      expect(1).toBe query._run().inserted
+      expect(1).toBe db._tables.users.length
 
-  it "throws for a duplicate primary key", ->
-    query = users.insert {id: 1}
-    expect(1).toBe query._run().errors
-    expect(2).toBe db._tables.users.length
+    it "clones the row before inserting it", ->
+      query = users.insert row = {id: 2}
+      query._run()
+      user = db._tables.users[1]
+      expect(row).not.toBe user
+      expect(row.id).toBe user.id
 
-  it "generates a UUID if no primary key is defined", ->
-    query = users.insert {}
-    res = query._run()
-    key = res.generated_keys[0]
-    expect(key).toBe users.get(key)._run().id
-    expect(res.inserted).toBe 1
+    it "throws for a duplicate primary key", ->
+      query = users.insert {id: 1}
+      expect(1).toBe query._run().errors
+      expect(2).toBe db._tables.users.length
 
-  it "can insert multiple rows at once", ->
-    query = users.insert [{name: "Joe"}, {name: "Jim"}]
-    res = query._run()
-    expect(res.inserted).toBe 2
-    expect(res.generated_keys.length).toBe 2
+    it "generates a UUID if no primary key is defined", ->
+      query = users.insert {}
+      res = query._run()
+      key = res.generated_keys[0]
+      expect(key).toBe users.get(key)._run().id
+      expect(res.inserted).toBe 1
 
-  it "still inserts a row if other rows have duplicate primary keys", ->
-    query = users.insert [{id: 2}, {id: 3}, {id: 1}]
-    res = query._run()
-    expect(res.errors).toBe 2
-    expect(res.inserted).toBe 1
+    it "can insert multiple rows at once", ->
+      query = users.insert [{name: "Joe"}, {name: "Jim"}]
+      res = query._run()
+      expect(res.inserted).toBe 2
+      expect(res.generated_keys.length).toBe 2
 
-describe "table.get()", ->
+    it "still inserts a row if other rows have duplicate primary keys", ->
+      query = users.insert [{id: 2}, {id: 3}, {id: 1}]
+      res = query._run()
+      expect(res.errors).toBe 2
+      expect(res.inserted).toBe 1
 
-  it "gets a row by its primary key", ->
-    res = users.get(1)._run()
-    expect(res.id).toBe 1
+  describe ".get()", ->
 
-  it "clones the row before returning it", ->
-    user1 = users.get 1
-    expect(user1._run()).not.toBe user1._run()
+    it "gets a row by its primary key", ->
+      res = users.get(1)._run()
+      expect(res.id).toBe 1
 
-  it "returns null if a row never existed", ->
-    expect(null).toBe users.get(100)._run()
+    it "clones the row before returning it", ->
+      user1 = users.get 1
+      expect(user1._run()).not.toBe user1._run()
 
-  # it "supports sub-queries", ->
+    it "returns null if a row never existed", ->
+      expect(null).toBe users.get(100)._run()
 
-describe "table.getAll()", ->
+    # it "supports sub-queries", ->
 
-  beforeAll ->
-    Promise.all [
-      users.get(2).update {friendCount: 5}
-      users.get(3).update {friendCount: 5}
-    ]
+  describe ".getAll()", ->
 
-  it "gets matching rows", ->
-    query = users.getAll 1, 2
-    expect(2).toBe query._run().length
+    beforeAll ->
+      Promise.all [
+        users.get(2).update {friendCount: 5}
+        users.get(3).update {friendCount: 5}
+      ]
 
-  it "can use secondary indexes", ->
-    query = users.getAll 5, {index: "friendCount"}
-    expect(2).toBe query._run().length
+    it "gets matching rows", ->
+      query = users.getAll 1, 2
+      expect(2).toBe query._run().length
 
-  # it "supports sub-queries", ->
+    it "can use secondary indexes", ->
+      query = users.getAll 5, {index: "friendCount"}
+      expect(2).toBe query._run().length
 
-  # it "can match an array", ->
+    # it "supports sub-queries", ->
 
-describe "db.table()", ->
+    # it "can match an array", ->
 
-  it "gets every row in the table", ->
-    res = users._run()
-    expect(res).toEqual db._tables.users
-    expect(res).not.toBe db._tables.users
+  describe ".delete()", ->
 
-  it "clones each row before returning the results", ->
-    users._run().forEach (res, i) ->
-      expect(res).toEqual db._tables.users[i]
-      expect(res).not.toBe db._tables.users[i]
-
-  it "throws if the table does not exist", ->
-    query = db.table "animals"
-    expect -> query._run()
-    .toThrowError "Table `animals` does not exist"
-
-describe "db.table().delete()", ->
-
-  it "deletes every row in the table", ->
-    count = db._tables.users.length
-    query = users.delete()
-    expect(count).toBe query._run().deleted
-    expect(0).toBe db._tables.users.length
+    it "deletes every row in the table", ->
+      count = db._tables.users.length
+      query = users.delete()
+      expect(count).toBe query._run().deleted
+      expect(0).toBe db._tables.users.length
