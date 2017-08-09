@@ -215,7 +215,6 @@ statics._default = (parent, value) ->
     catch error
       throw error unless isNullError error
     return result ? value._eval ctx
-
   return self
 
 statics._branch = (cond, args) ->
@@ -251,8 +250,7 @@ statics._expr = (expr) ->
   if utils.isQuery expr
     return expr
 
-  self = Query()
-  self._type = "DATUM"
+  self = Query null, "DATUM"
 
   if isArrayOrObject expr
     values = expr
