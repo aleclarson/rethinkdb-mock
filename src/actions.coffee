@@ -98,12 +98,20 @@ actions.div = (result, args) ->
 actions.nth = (result, index) ->
   utils.expect result, "ARRAY"
   utils.expect index, "NUMBER"
+
+  if index < -1 and /TABLE|SEQUENCE/.test @type
+    throw Error "Cannot use an index < -1 on a stream"
+
   return seq.nth result, index
 
 actions.bracket = (result, key) ->
   type = utils.typeOf key
 
   if type is "NUMBER"
+
+    if key < -1 and /TABLE|SEQUENCE/.test @type
+      throw Error "Cannot use an index < -1 on a stream"
+
     return seq.nth result, key
 
   if type isnt "STRING"

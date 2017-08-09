@@ -7,11 +7,7 @@ utils = require "."
 
 seq = exports
 
-# TODO: Prevent indexes less than -1 for streams.
 seq.nth = (array, index) ->
-
-  if index < -1 and /TABLE|SEQUENCE/.test @type
-    throw Error "Cannot use an index < -1 on a stream"
 
   if index < 0
     index = array.length + index
