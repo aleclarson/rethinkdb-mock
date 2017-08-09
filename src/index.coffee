@@ -18,7 +18,7 @@ rethinkdb = (options = {}) ->
   name = options.name or "test"
   return db if db = cache[name]
 
-  db = new Database name
+  db = Database name
   cache[name] = db
   return db
 

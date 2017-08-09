@@ -2,6 +2,7 @@
 isConstructor = require "isConstructor"
 assertType = require "assertType"
 sliceArray = require "sliceArray"
+setType = require "setType"
 
 Table = require "./Table"
 Query = require "./Query"
@@ -13,11 +14,16 @@ define = Object.defineProperty
 
 Database = (name) ->
   assertType name, String
-  @_name = name
-  define this, "_tables",
+
+  self = (value) ->
+    self.expr value
+
+  self._name = name
+  define self, "_tables",
     value: {}
     writable: yes
-  return this
+
+  return setType self, Database
 
 methods = {}
 
