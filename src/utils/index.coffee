@@ -120,13 +120,19 @@ utils.clone = (values) ->
 
 # Resolves any queries found in a value.
 # Throws an error for undefined values.
-utils.resolve = (value) ->
+utils.resolve = (value, ctx) ->
+
+  if utils.isQuery value
+    return value._run ctx
+
+  ctx?.type = "DATUM"
+
   if isArray value
     return resolveArray value
+
   if isConstructor value, Object
     return resolveObject value
-  if utils.isQuery value
-    return value._run()
+
   return value
 
 #
