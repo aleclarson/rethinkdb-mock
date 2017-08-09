@@ -187,13 +187,13 @@ statics._expr = (expr) ->
   if isConstructor(expr, Number) and not isFinite expr
     throw Error "Cannot convert `#{expr}` to JSON"
 
-  self = Query()
-
   if utils.isQuery expr
-    self._eval = (ctx) ->
-      return expr._run ctx
+    return expr
 
-  else if isArrayOrObject expr
+  self = Query()
+  self._type = "DATUM"
+
+  if isArrayOrObject expr
     values = expr
     expr = if isArray values then [] else {}
     Object.keys(values).forEach (key) ->
@@ -209,13 +209,11 @@ statics._expr = (expr) ->
 
       throw Error "Expected type DATUM but found #{value._type}"
 
-    self._type = "DATUM"
     self._eval = (ctx) ->
       ctx.type = @_type
       return utils.resolve expr
 
   else
-    self._type = "DATUM"
     self._eval = (ctx) ->
       ctx.type = @_type
       return expr
