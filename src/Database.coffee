@@ -57,6 +57,11 @@ methods.branch = (cond) ->
     throw Error "`branch` takes at least 3 arguments, #{args.length + 1} provided"
   return Query._branch Query._expr(cond), args
 
+methods.do = (arg) ->
+  unless arguments.length
+    throw Error "`do` takes at least 1 argument, 0 provided"
+  return Query._do Query._expr(arg), sliceArray arguments, 1
+
 # TODO: You cannot have a sequence nested in an expression. You must use `coerceTo` first.
 methods.expr = Query._expr
 

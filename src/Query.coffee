@@ -43,9 +43,9 @@ methods = {}
 methods.default = (value) ->
   Query._default this, value
 
-# TODO: Support variadic arguments.
-methods.do = (callback) ->
-  Result(this)._do callback
+methods.do = ->
+  args = sliceArray arguments
+  return Query._do this, args
 
 variadic "eq ne gt lt ge le or and add sub mul div"
 
@@ -170,6 +170,38 @@ methods._run = (ctx = {}) ->
 #
 
 statics = {}
+
+statics._do = (parent, args) ->
+
+  unless args.length
+    return parent
+
+  self = Query()
+  self._parent = parent
+
+  last = args.pop()
+  args.unshift parent
+
+  if isConstructor last, Function
+    args = args.slice(0, last.length).map Result
+    query = last.apply null, args
+
+    if query is undefined
+      throw Error "Anonymous function returned `undefined`. Did you forget a `return`?"
+
+    unless utils.isQuery query
+      query = Query._expr query
+
+    self._eval = (ctx) ->
+      result = query._eval ctx
+      args.forEach (arg) -> arg._reset()
+      return result
+    return self
+
+  self._eval = (ctx) ->
+    args.forEach utils.resolve
+    utils.resolve last, ctx
+  return self
 
 statics._default = (parent, value) ->
 
