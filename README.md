@@ -40,7 +40,7 @@ If this doesn't convince you, please open an issue explaining your reasoning! :+
 1. Install from Github:
 
 ```sh
-npm install --save-dev aleclarson/rethinkdb-mock#0.3.0
+npm install --save-dev aleclarson/rethinkdb-mock#0.4.0
 ```
 
 2. Put some boilerplate in your test environment:
@@ -88,8 +88,10 @@ Be advised that anything on this list may not support specific use cases yet.
 - Nesting queries (most of the time)
 
 - `r.table()`
+- `r.do()`
 - `r.expr()`
 - `r.object()`
+- `r.branch()`
 - `r.desc()`
 - `r.typeOf()`
 - `r.uuid()`
@@ -117,6 +119,7 @@ Be advised that anything on this list may not support specific use cases yet.
 - `query.update()`
 - `query.delete()`
 - `query.default()`
+- `query.branch()`
 - `query.do()`
 - `query.eq()`
 - `query.ne()`
@@ -138,7 +141,6 @@ Be advised that anything on this list may not support specific use cases yet.
 This list may not be exhaustive and will be updated accordingly.
 
 - `r.row`
-- `r.do()`
 - `r.args()`
 - `r.tableCreate()`
 - `r.tableList()`
@@ -155,7 +157,6 @@ This list may not be exhaustive and will be updated accordingly.
 - `r.json()`
 - `r.http()`
 
-- `query.branch()`
 - `query.info()`
 - `query.sync()`
 - `query.toJSON()`
