@@ -47,7 +47,9 @@ methods.tableDrop = (tableId) ->
 methods.uuid = require "./utils/uuid"
 
 methods.typeOf = (value) ->
-  Query._expr(value).typeOf()
+  if arguments.length isnt 1
+    throw Error "`typeOf` takes 1 argument, #{arguments.length} provided"
+  return Query._expr(value).typeOf()
 
 # TODO: You cannot have a sequence nested in an expression. You must use `coerceTo` first.
 methods.expr = Query._expr
