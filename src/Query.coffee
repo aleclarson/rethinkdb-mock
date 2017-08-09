@@ -208,7 +208,8 @@ statics._default = (parent, value) ->
   unless utils.isQuery value
     value = Query._expr value
 
-  self = Query parent
+  self = Query()
+  self._parent = parent
   self._eval = (ctx) ->
     try result = parent._eval ctx
     catch error
@@ -224,7 +225,8 @@ statics._branch = (cond, args) ->
 
   lastIndex = args.length - 1
 
-  self = Query cond
+  self = Query()
+  self._parent = cond
   self._eval = (ctx) ->
 
     unless isFalse cond._eval {}
