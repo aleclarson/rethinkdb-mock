@@ -51,6 +51,12 @@ methods.typeOf = (value) ->
     throw Error "`typeOf` takes 1 argument, #{arguments.length} provided"
   return Query._expr(value).typeOf()
 
+methods.branch = (cond) ->
+  args = sliceArray arguments, 1
+  if args.length < 2
+    throw Error "`branch` takes at least 3 arguments, #{args.length + 1} provided"
+  return Query._branch Query._expr(cond), args
+
 # TODO: You cannot have a sequence nested in an expression. You must use `coerceTo` first.
 methods.expr = Query._expr
 

@@ -74,6 +74,12 @@ variadic "slice merge pluck without"
 methods.typeOf = ->
   @_then "typeOf"
 
+methods.branch = ->
+  args = sliceArray arguments
+  if args.length < 2
+    throw Error "`branch` takes at least 2 arguments, #{args.length} provided"
+  return Query._branch this, args
+
 methods.update = (patch) ->
   @_then "update", arguments
 
@@ -179,6 +185,27 @@ statics._default = (parent, value) ->
 
   return self
 
+statics._branch = (cond, args) ->
+
+  if args.length % 2
+    throw Error "`branch` cannot be called with an even number of arguments"
+
+  lastIndex = args.length - 1
+
+  self = Query cond
+  self._eval = (ctx) ->
+
+    unless isFalse cond._eval {}
+      return utils.resolve args[0], ctx
+
+    index = -1
+    while (index += 2) isnt lastIndex
+      unless isFalse utils.resolve args[index]
+        return utils.resolve args[index + 1], ctx
+
+    return utils.resolve args[lastIndex], ctx
+  return self
+
 statics._expr = (expr) ->
 
   if expr is undefined
@@ -238,6 +265,9 @@ module.exports = Query
 #
 # Helpers
 #
+
+isFalse = (value) ->
+  (value is null) or (value is false)
 
 isArrayOrObject = (value) ->
   isArray(value) or isConstructor(value, Object)
