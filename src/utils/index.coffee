@@ -27,9 +27,7 @@ utils.expect = (value, expectedType) ->
     throw Error "Expected type #{expectedType} but found #{type}"
 
 utils.isQuery = (queryTypes, value) ->
-  return no unless value
-  return yes if ~queryTypes.indexOf value.constructor
-  return no
+  value and inherits value, queryTypes
 
 utils.getField = (value, attr) ->
   return value[attr] if value.hasOwnProperty attr
@@ -138,6 +136,11 @@ utils.resolve = (value, ctx) ->
 #
 # Helpers
 #
+
+inherits = (value, types) ->
+  for type in types
+    return yes if value instanceof type
+  return no
 
 isArrayOrObject = (value) ->
   isArray(value) or isConstructor(value, Object)
