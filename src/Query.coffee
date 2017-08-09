@@ -230,7 +230,7 @@ statics._expr = (expr) ->
         expr[key] = Query._expr value
         return
 
-      if value._type is "DATUM"
+      if /DATUM|SELECTION/.test value._type
         expr[key] = value
         return
 
