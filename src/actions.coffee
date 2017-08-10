@@ -217,7 +217,7 @@ actions.limit = (array, count) ->
   utils.expect count, "NUMBER"
 
   if count < 0
-    throw Error "Cannot call `limit` with a negative number"
+    throw Error "LIMIT takes a non-negative argument"
 
   return array.slice 0, count
 
