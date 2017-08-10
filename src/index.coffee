@@ -1,4 +1,3 @@
-# TODO: Allow initializing the database with a JSON file.
 
 assertType = require "assertType"
 

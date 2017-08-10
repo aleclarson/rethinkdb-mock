@@ -31,6 +31,12 @@ methods.init = (tables) ->
   @_tables = tables
   return
 
+methods.load = ->
+  filePath = require("path").resolve.apply null, arguments
+  json = require("fs").readFileSync filePath, "utf8"
+  @_tables = JSON.parse json
+  return
+
 methods.table = (tableId) ->
   if tableId is undefined
     throw Error "Cannot convert `undefined` with r.expr()"
