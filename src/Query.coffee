@@ -63,6 +63,9 @@ variadic "hasFields"
 methods.offsetsOf = (value) ->
   @_then "offsetsOf", arguments
 
+methods.contains = (value) ->
+  @_then "contains", arguments
+
 methods.orderBy = (field) ->
   @_then "orderBy", arguments
 
@@ -345,6 +348,7 @@ getType = do ->
     getField: DATUM
     hasFields: sequential
     offsetsOf: DATUM
+    contains: DATUM
     orderBy: sequential
     filter: sequential
     fold: null # TODO: Determine `fold` result type.
@@ -382,6 +386,7 @@ getArity = do ->
     getField: [1, 1]
     hasFields: [1, Infinity]
     offsetsOf: [1, 1]
+    contains: [1, 1]
     orderBy: [1, 1]
     filter: [1, 2]
     fold: [2, 2]

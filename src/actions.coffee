@@ -169,6 +169,17 @@ actions.offsetsOf = (array, value) ->
     offsets.push index if utils.equals value2, value
   return offsets
 
+# TODO: Support `contains` function argument
+actions.contains = (array, value) ->
+  utils.expect array, "ARRAY"
+
+  if isConstructor value, Function
+    throw Error "Function argument not yet implemented"
+
+  for value2 in array
+    return yes if utils.equals value, value2
+  return no
+
 # TODO: Support sorting by an array/object value.
 # TODO: Support `orderBy` function argument
 actions.orderBy = (array, value) ->
