@@ -15,15 +15,14 @@ define = Object.defineProperty
 Database = (name) ->
   assertType name, String
 
-  self = (value) ->
-    self.expr value
+  r = (value) -> r.expr value
+  r._name = name
 
-  self._name = name
-  define self, "_tables",
+  define r, "_tables",
     value: {}
     writable: yes
 
-  return setType self, Database
+  return setType r, Database
 
 methods = {}
 
@@ -33,10 +32,9 @@ methods.init = (tables) ->
   return
 
 methods.table = (tableId) ->
-  self = Table this, tableId
   if tableId is undefined
-    self._error = Error "Cannot convert `undefined` with r.expr()"
-  return self
+    throw Error "Cannot convert `undefined` with r.expr()"
+  return Table this, tableId
 
 methods.tableCreate = (tableId) ->
   throw Error "Not implemented"
@@ -76,9 +74,8 @@ methods.object = ->
     if arg is undefined
       throw Error "Argument #{index} to object may not be `undefined`"
 
-  self = Query()
-  self._type = "DATUM"
-  self._eval = (ctx) ->
+  query = Query null, "DATUM"
+  query._eval = (ctx) ->
     result = {}
 
     index = 0
@@ -90,7 +87,7 @@ methods.object = ->
 
     ctx.type = @_type
     return result
-  return self
+  return query
 
 # TODO: Support `args`
 # methods.args = (array) ->

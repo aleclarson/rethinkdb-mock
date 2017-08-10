@@ -161,12 +161,6 @@ actions.hasFields = (result, attrs) ->
 actions.offsetsOf = (array, value) ->
   utils.expect array, "ARRAY"
 
-  if value is undefined
-    throw Error "Argument 1 to offsetsOf may not be `undefined`"
-
-  if utils.isQuery value
-    value = value._run()
-
   if isConstructor value, Function
     throw Error "Function argument not yet implemented"
 
@@ -186,12 +180,12 @@ actions.orderBy = (array, value) ->
   else if isConstructor value, String
     index = value
 
+  utils.expect index, "STRING"
   sorter =
     if DESC
     then sortDescending index
     else sortAscending index
 
-  utils.expect index, "STRING"
   return array.slice().sort sorter
 
 actions.filter = (array, filter, options) ->
@@ -207,11 +201,8 @@ actions.count = (array) ->
 
 actions.limit = (array, count) ->
   utils.expect array, "ARRAY"
-
-  if utils.isQuery count
-    count = count._run()
-
   utils.expect count, "NUMBER"
+
   if count < 0
     throw Error "Cannot call `limit` with a negative number"
 

@@ -15,7 +15,7 @@ runQuery = Query::_run
 define = Object.defineProperty
 
 Table = (db, tableId) ->
-  query = (key) -> Query(query, "TABLE").bracket key
+  query = (key) -> query.bracket key
   query._db = db
   query._type = "TABLE"
   query._tableId = tableId

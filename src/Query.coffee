@@ -104,12 +104,12 @@ methods.catch = (onRejected) ->
 #
 
 methods._then = (action, args) ->
-  self = Query this, getType action
-  self._action = action
+  query = Query this, getType action
+  query._action = action
   if args
-    self._args = args
-    self._parseArgs()
-  return self
+    query._args = args
+    query._parseArgs()
+  return query
 
 methods._parseArgs = ->
   arity = getArity @_action
@@ -176,46 +176,46 @@ statics._do = (parent, args) ->
   unless args.length
     return parent
 
-  self = Query()
-  self._parent = parent
+  query = Query()
+  query._parent = parent
 
   last = args.pop()
   args.unshift parent
 
   if isConstructor last, Function
     args = args.slice(0, last.length).map Result
-    query = last.apply null, args
+    value = last.apply null, args
 
-    if query is undefined
+    if value is undefined
       throw Error "Anonymous function returned `undefined`. Did you forget a `return`?"
 
-    unless utils.isQuery query
-      query = Query._expr query
+    unless utils.isQuery value
+      value = Query._expr value
 
-    self._eval = (ctx) ->
-      result = query._eval ctx
+    query._eval = (ctx) ->
+      result = value._eval ctx
       args.forEach (arg) -> arg._reset()
       return result
-    return self
+    return query
 
-  self._eval = (ctx) ->
+  query._eval = (ctx) ->
     args.forEach utils.resolve
     utils.resolve last, ctx
-  return self
+  return query
 
 statics._default = (parent, value) ->
 
   unless utils.isQuery value
     value = Query._expr value
 
-  self = Query()
-  self._parent = parent
-  self._eval = (ctx) ->
+  query = Query()
+  query._parent = parent
+  query._eval = (ctx) ->
     try result = parent._eval ctx
     catch error
       throw error unless isNullError error
     return result ? value._eval ctx
-  return self
+  return query
 
 statics._branch = (cond, args) ->
 
@@ -224,9 +224,9 @@ statics._branch = (cond, args) ->
 
   lastIndex = args.length - 1
 
-  self = Query()
-  self._parent = cond
-  self._eval = (ctx) ->
+  query = Query()
+  query._parent = cond
+  query._eval = (ctx) ->
 
     unless isFalse cond._eval {}
       return utils.resolve args[0], ctx
@@ -237,7 +237,7 @@ statics._branch = (cond, args) ->
         return utils.resolve args[index + 1], ctx
 
     return utils.resolve args[lastIndex], ctx
-  return self
+  return query
 
 statics._expr = (expr) ->
 
@@ -250,7 +250,7 @@ statics._expr = (expr) ->
   if utils.isQuery expr
     return expr
 
-  self = Query null, "DATUM"
+  query = Query null, "DATUM"
 
   if isArrayOrObject expr
     values = expr
@@ -268,16 +268,16 @@ statics._expr = (expr) ->
 
       throw Error "Expected type DATUM but found #{value._type}"
 
-    self._eval = (ctx) ->
+    query._eval = (ctx) ->
       ctx.type = @_type
       return utils.resolve expr
 
   else
-    self._eval = (ctx) ->
+    query._eval = (ctx) ->
       ctx.type = @_type
       return expr
 
-  return self
+  return query
 
 #
 # Exports
@@ -308,53 +308,56 @@ isNullError = (error) ->
   !error or /(Index out of bounds|No attribute|null)/i.test error.message
 
 getType = do ->
+  DATUM = "DATUM"
+
+  seqRE = /TABLE|SEQUENCE/
 
   # Sequences are preserved.
   # Tables are converted to sequences.
   sequential = (ctx) ->
-    return "SEQUENCE" if /TABLE|SEQUENCE/.test ctx.type
-    return "DATUM"
+    return "SEQUENCE" if seqRE.test ctx.type
+    return DATUM
 
   types =
-    eq: "DATUM"
-    ne: "DATUM"
-    gt: "DATUM"
-    lt: "DATUM"
-    ge: "DATUM"
-    le: "DATUM"
-    or: "DATUM"
-    and: "DATUM"
-    add: "DATUM"
-    sub: "DATUM"
-    mul: "DATUM"
-    div: "DATUM"
+    eq: DATUM
+    ne: DATUM
+    gt: DATUM
+    lt: DATUM
+    ge: DATUM
+    le: DATUM
+    or: DATUM
+    and: DATUM
+    add: DATUM
+    sub: DATUM
+    mul: DATUM
+    div: DATUM
 
     nth: (ctx) ->
-      return "SELECTION" if /TABLE|SEQUENCE/.test ctx.type
-      return "DATUM"
+      return "SELECTION" if seqRE.test ctx.type
+      return DATUM
 
     # For tables and sequences, an index argument results in a selection.
     bracket: (ctx, args) ->
       unless isConstructor args[0], String
-        return "SELECTION" if /TABLE|SEQUENCE/.test ctx.type
-      return "DATUM"
+        return "SELECTION" if seqRE.test ctx.type
+      return DATUM
 
-    getField: "DATUM"
+    getField: DATUM
     hasFields: sequential
-    offsetsOf: "DATUM"
+    offsetsOf: DATUM
     orderBy: sequential
     filter: sequential
     fold: null # TODO: Determine `fold` result type.
-    count: "DATUM"
+    count: DATUM
     limit: sequential
     slice: sequential
-    merge: "DATUM"
-    pluck: "DATUM"
-    without: "DATUM"
-    typeOf: "DATUM"
-    update: "DATUM"
-    replace: "DATUM"
-    delete: "DATUM"
+    merge: DATUM
+    pluck: DATUM
+    without: DATUM
+    typeOf: DATUM
+    update: DATUM
+    replace: DATUM
+    delete: DATUM
 
   return (action) ->
     types[action]
