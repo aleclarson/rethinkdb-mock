@@ -203,7 +203,35 @@ actions.orderBy = (array, value) ->
 
 actions.filter = (array, filter, options) ->
   utils.expect array, "ARRAY"
-  return seq.filter array, filter, options
+
+  if options isnt undefined
+    utils.expect options, "OBJECT"
+    # TODO: Support `default` option
+    # TODO: Support sub-queries in the `options` object.
+
+  matchers = []
+  if isConstructor filter, Object
+
+    matchers.push (values) ->
+      utils.expect values, "OBJECT"
+      return yes
+
+    Object.keys(filter).forEach (key) ->
+      matchers.push (values) ->
+        utils.equals values[key], filter[key]
+
+  # TODO: Support function argument
+  else if isConstructor filter, Function
+    throw Error "Filter functions are not implemented yet"
+
+  # The native API returns the sequence when
+  # the filter is neither an object nor function.
+  else return array.slice()
+
+  return array.filter (row) ->
+    for matcher in matchers
+      return no unless matcher row
+    return yes
 
 actions.fold = ->
   throw Error "Not implemented"
