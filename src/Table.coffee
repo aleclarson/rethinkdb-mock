@@ -55,7 +55,7 @@ methods.delete = ->
   self._action = "delete"
   return Query self, "DATUM"
 
-"nth getField offsetsOf contains orderBy filter fold count limit slice merge pluck without update"
+"nth bracket getField offsetsOf contains orderBy filter fold count limit slice merge pluck without update"
   .split(" ").forEach (key) ->
     methods[key] = ->
       Query(this, "TABLE")._then key, arguments
