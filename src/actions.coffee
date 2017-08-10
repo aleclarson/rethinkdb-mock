@@ -8,6 +8,8 @@ seq = require "./utils/seq"
 
 {isArray} = Array
 
+seqRE = /TABLE|SEQUENCE/
+
 actions = exports
 
 actions.eq = (result, args) ->
@@ -99,7 +101,7 @@ actions.nth = (result, index) ->
   utils.expect result, "ARRAY"
   utils.expect index, "NUMBER"
 
-  if index < -1 and /TABLE|SEQUENCE/.test @type
+  if index < -1 and seqRE.test @type
     throw Error "Cannot use an index < -1 on a stream"
 
   return seq.nth result, index
@@ -109,7 +111,7 @@ actions.bracket = (result, key) ->
 
   if type is "NUMBER"
 
-    if key < -1 and /TABLE|SEQUENCE/.test @type
+    if key < -1 and seqRE.test @type
       throw Error "Cannot use an index < -1 on a stream"
 
     return seq.nth result, key
