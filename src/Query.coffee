@@ -2,9 +2,10 @@
 
 isConstructor = require "isConstructor"
 sliceArray = require "sliceArray"
-setType = require "setType"
+setProto = require "setProto"
 
 actions = require "./actions"
+Result = require "./Result"
 utils = require "./utils"
 
 {isArray} = Array
@@ -22,10 +23,7 @@ Query = (parent, type) ->
     query._db = null
     query._type = type or null
 
-  return setType query, Query
-
-# Run a query once, and reuse its result.
-Result = require("./Result")(Query)
+  return setProto query, Query.prototype
 
 # Define methods with infinite arity.
 variadic = (keys) ->

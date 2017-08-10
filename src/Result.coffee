@@ -1,46 +1,41 @@
 
-setKind = require "setKind"
-setType = require "setType"
+setProto = require "setProto"
 
 utils = require "./utils"
 
 define = Object.defineProperty
 
-module.exports = (Query) ->
+Result = (parent) ->
+  self = (key) -> self.bracket key
 
-  Result = (parent) ->
-    self = (key) -> self.bracket key
+  if utils.isQuery parent
+    self._db = parent._db
+    self._parent = parent
+  else
+    self._db = null
+    self._parent = Query._expr parent
 
-    if utils.isQuery parent
-      self._db = parent._db
-      self._parent = parent
-    else
-      self._db = null
-      self._parent = Query._expr parent
+  return setProto self, Result.prototype
 
-    return setType self, Result
+methods = {}
 
-  setKind Result, Query
+methods._eval = evalQuery = (ctx) ->
+  result = @_parent._run()
 
-  methods = {}
-
-  methods._eval = evalQuery = (ctx) ->
-    result = @_parent._run()
-
-    @_eval = (ctx) ->
-      ctx.type = "DATUM"
-      return result
-
+  @_eval = (ctx) ->
     ctx.type = "DATUM"
     return result
 
-  methods._reset = ->
-    delete @_eval
-    return
+  ctx.type = "DATUM"
+  return result
 
-  Object.keys(methods).forEach (key) ->
-    define Result.prototype, key,
-      value: methods[key]
-      writable: yes
+methods._reset = ->
+  delete @_eval
+  return
 
-  return Result
+Object.keys(methods).forEach (key) ->
+  define Result.prototype, key,
+    value: methods[key]
+    writable: yes
+
+module.exports = Result

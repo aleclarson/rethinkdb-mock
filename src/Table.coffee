@@ -2,7 +2,7 @@
 isConstructor = require "isConstructor"
 assertType = require "assertType"
 sliceArray = require "sliceArray"
-setType = require "setType"
+setProto = require "setProto"
 
 Query = require "./Query"
 utils = require "./utils"
@@ -19,7 +19,7 @@ Table = (db, tableId) ->
   query._db = db
   query._type = "TABLE"
   query._tableId = tableId
-  return setType query, Table
+  return setProto query, Table.prototype
 
 methods = {}
 

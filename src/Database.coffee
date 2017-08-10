@@ -2,7 +2,7 @@
 isConstructor = require "isConstructor"
 assertType = require "assertType"
 sliceArray = require "sliceArray"
-setType = require "setType"
+setProto = require "setProto"
 
 Table = require "./Table"
 Query = require "./Query"
@@ -22,7 +22,7 @@ Database = (name) ->
     value: {}
     writable: yes
 
-  return setType r, Database
+  return setProto r, Database.prototype
 
 methods = {}
 
