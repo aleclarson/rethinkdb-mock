@@ -1,4 +1,3 @@
-# TODO: Clone nested selections.
 
 isConstructor = require "isConstructor"
 sliceArray = require "sliceArray"

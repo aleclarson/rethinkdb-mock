@@ -101,12 +101,6 @@ methods.object = ->
 methods.asc = (index) -> {ASC: yes, index}
 methods.desc = (index) -> {DESC: yes, index}
 
-# TODO: Support `do`
-# methods.do = ->
-
-# TODO: Support `branch`
-# methods.branch = ->
-
 # TODO: Support `row`
 # methods.row = do ->
 
