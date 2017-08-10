@@ -72,8 +72,14 @@ methods.orderBy = (field) ->
 methods.filter = (filter, options) ->
   @_then "filter", arguments
 
+methods.isEmpty = ->
+  @_then "isEmpty"
+
 methods.count = ->
   @_then "count"
+
+methods.skip = (count) ->
+  @_then "skip", arguments
 
 methods.limit = (count) ->
   @_then "limit", arguments
@@ -358,7 +364,9 @@ getType = do ->
     orderBy: sequential
     filter: sequential
     fold: null # TODO: Determine `fold` result type.
+    isEmpty: DATUM
     count: DATUM
+    skip: sequential
     limit: sequential
     slice: sequential
     merge: DATUM
@@ -401,7 +409,9 @@ getArity = do ->
     orderBy: one
     filter: oneTwo
     fold: two
+    isEmpty: none
     count: none
+    skip: one
     limit: one
     slice: onePlus
     merge: onePlus

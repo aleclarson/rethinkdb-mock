@@ -208,9 +208,22 @@ actions.filter = (array, filter, options) ->
 actions.fold = ->
   throw Error "Not implemented"
 
+actions.isEmpty = (array) ->
+  utils.expect array, "ARRAY"
+  return array.length is 0
+
 actions.count = (array) ->
   utils.expect array, "ARRAY"
   return array.length
+
+actions.skip = (array, count) ->
+  utils.expect array, "ARRAY"
+  utils.expect count, "NUMBER"
+
+  if count < 0 and seqRE.test @type
+    throw Error "Cannot use a negative left index on a stream"
+
+  return array.slice count
 
 actions.limit = (array, count) ->
   utils.expect array, "ARRAY"
