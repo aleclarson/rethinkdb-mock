@@ -72,6 +72,12 @@ methods.orderBy = (field) ->
 methods.filter = (filter, options) ->
   @_then "filter", arguments
 
+methods.count = ->
+  @_then "count"
+
+methods.limit = (count) ->
+  @_then "limit", arguments
+
 variadic "slice merge pluck without"
 
 methods.typeOf = ->
