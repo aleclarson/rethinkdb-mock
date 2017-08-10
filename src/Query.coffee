@@ -373,41 +373,46 @@ getType = do ->
     types[action]
 
 getArity = do ->
+  none = [0, 0]
+  one = [1, 1]
+  two = [2, 2]
+  oneTwo = [1, 2]
+  onePlus = [1, Infinity]
 
   arity =
-    eq: [1, Infinity]
-    ne: [1, Infinity]
-    gt: [1, Infinity]
-    lt: [1, Infinity]
-    ge: [1, Infinity]
-    le: [1, Infinity]
-    or: [1, Infinity]
-    and: [1, Infinity]
-    add: [1, Infinity]
-    sub: [1, Infinity]
-    mul: [1, Infinity]
-    div: [1, Infinity]
-    nth: [1, 1]
-    bracket: [1, 1]
-    getField: [1, 1]
-    hasFields: [1, Infinity]
-    offsetsOf: [1, 1]
-    contains: [1, 1]
-    orderBy: [1, 1]
-    filter: [1, 2]
-    fold: [2, 2]
-    count: [0, 0]
-    limit: [1, 1]
-    slice: [1, Infinity]
-    merge: [1, Infinity]
-    pluck: [1, Infinity]
-    without: [1, Infinity]
-    typeOf: [0, 0]
-    getAll: [1, Infinity]
-    insert: [1, 2]
-    update: [1, 1]
-    replace: [1, 1]
-    delete: [0, 0]
+    eq: onePlus
+    ne: onePlus
+    gt: onePlus
+    lt: onePlus
+    ge: onePlus
+    le: onePlus
+    or: onePlus
+    and: onePlus
+    add: onePlus
+    sub: onePlus
+    mul: onePlus
+    div: onePlus
+    nth: one
+    bracket: one
+    getField: one
+    hasFields: onePlus
+    offsetsOf: one
+    contains: one
+    orderBy: one
+    filter: oneTwo
+    fold: two
+    count: none
+    limit: one
+    slice: onePlus
+    merge: onePlus
+    pluck: onePlus
+    without: onePlus
+    typeOf: none
+    getAll: onePlus
+    insert: oneTwo
+    update: one
+    replace: one
+    delete: none
 
   return (action) ->
     arity[action]
