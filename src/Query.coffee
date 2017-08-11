@@ -136,12 +136,7 @@ methods._parseArgs = ->
   if args.length > arity[1]
     throw Error "`#{@_action}` takes at most #{arity[1]} argument#{if arity[1] is 1 then "" else "s"}, #{args.length} provided"
 
-  index = -1
-  while ++index < args.length
-    unless utils.isQuery args[index]
-      args[index] = Query._expr args[index]
-
-  @_args = args
+  @_args = Query._expr args
   return
 
 methods._eval = (ctx) ->
