@@ -20,18 +20,13 @@ If you find a method not behaving as expected, please open an issue!
 
 ### Why use this?
 
-Typically, when testing code that uses RethinkDB, you need to use the `rethinkdb` CLI to start a process
-before running your tests. You'll decide to either connect to the same database you use for manual QA testing
-or create a temporary database purely for automated testing (which you'll need to populate with data).
-
-Using `rethinkdb-mock` allows you to create a database for each test suite, which means less
-work goes into ensuring the database is in the expected state from one suite to the next.
-And since test suites are typically split into their own files, the test order can force you to
-perform confusing and unnecessary setup/teardown operations. It's often simpler to setup an
-in-memory database dedicated to a specific test suite, especially if you only want to run
-a specific suite with Jasmine's `fit`.
-
-If this doesn't convince you, please open an issue explaining your reasoning! :+1:
+- Load JSON data into the database with `db.load()`
+- Or call `db.init()` to easily populate the database
+- Easily run specific tests (`fit` in Jasmine)
+- Avoid teardown between test suites
+- Avoid having to start a `rethinkdb` process before you can run tests
+- Avoid mutilating your development `rethinkdb_data`
+- Continuous integration compatibility
 
 ---
 
@@ -69,6 +64,9 @@ describe('Some test suite', () => {
       users: [],
       friends: [],
     })
+
+    // Optionally, load JSON into the database.
+    db.load(__dirname, './data.json')
   })
 
   // Now create your tests...
@@ -107,11 +105,13 @@ Be advised that anything on this list may not support specific use cases yet.
 - `query.getField()`
 - `query.hasFields()`
 - `query.offsetsOf()`
+- `query.contains()`
+- `query.isEmpty()`
 - `query.count()`
+- `query.skip()`
 - `query.limit()`
 - `query.slice()`
 - `query.filter()`
-- `query.fold()`
 - `query.merge()`
 - `query.pluck()`
 - `query.without()`
@@ -169,14 +169,12 @@ This list may not be exhaustive and will be updated accordingly.
 - `query.zip()`
 - `query.group()`
 - `query.ungroup()`
-- `query.reduce()`
 - `query.distinct()`
-- `query.contains()`
 - `query.map()`
+- `query.fold()`
+- `query.reduce()`
 - `query.withFields()`
 - `query.concatMap()`
-- `query.skip()`
-- `query.isEmpty()`
 - `query.sample()`
 - `query.setInsert()`
 - `query.setUnion()`
