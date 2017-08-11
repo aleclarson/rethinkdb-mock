@@ -14,6 +14,7 @@ Please open an issue if you think something should have higher/lower priority.
 - 🔸 Support math operations on date-times
 - 🔹 Support key maps with `hasFields`
 - 🔹 Support object/array comparison using `gt`, `lt`, `ge`, or `le`
+- 🔹 Support a function argument with `merge`
 - 🔹 Support a function argument with `filter`
 - 🔹 Support a function argument with `orderBy`
 - 🔹 Support a function argument with `contains`
