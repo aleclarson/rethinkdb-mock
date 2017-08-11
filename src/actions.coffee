@@ -225,7 +225,7 @@ actions.filter = (array, filter, options) ->
 
   # The native API returns the sequence when
   # the filter is neither an object nor function.
-  else return array.slice()
+  else return array
 
   return array.filter (row) ->
     for matcher in matchers
