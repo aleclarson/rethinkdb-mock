@@ -20,7 +20,7 @@ Database = (name) ->
 
   define r, "_tables",
     value: {}
-    writable: yes
+    writable: true
 
   return setProto r, Database.prototype
 
@@ -98,8 +98,8 @@ methods.object = ->
 # TODO: Support `args`
 # methods.args = (array) ->
 
-methods.asc = (index) -> {ASC: yes, index}
-methods.desc = (index) -> {DESC: yes, index}
+methods.asc = (index) -> {ASC: true, index}
+methods.desc = (index) -> {DESC: true, index}
 
 # TODO: Support `row`
 # methods.row = do ->

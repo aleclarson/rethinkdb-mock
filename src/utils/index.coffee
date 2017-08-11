@@ -35,17 +35,17 @@ utils.getField = (value, attr) ->
 
 utils.hasFields = (value, attrs) ->
   for attr in attrs
-    return no unless value.hasOwnProperty attr
-  return yes
+    return false unless value.hasOwnProperty attr
+  return true
 
 utils.equals = (value1, value2) ->
 
   if isArray value1
-    return no unless isArray value2
+    return false unless isArray value2
     return arrayEquals value1, value2
 
   if isConstructor value1, Object
-    return no unless isConstructor value2, Object
+    return false unless isConstructor value2, Object
     return objectEquals value1, value2
 
   return value1 is value2
@@ -82,7 +82,7 @@ utils.merge = (output, inputs) ->
 
 # Returns true if the `patch` changed at least one value.
 utils.update = (object, patch) ->
-  return no if patch is null
+  return false if patch is null
 
   if "OBJECT" isnt utils.typeOf patch
     throw Error "Inserted value must be an OBJECT (got #{utils.typeOf patch})"
@@ -137,25 +137,25 @@ utils.resolve = (value, ctx) ->
 
 inherits = (value, types) ->
   for type in types
-    return yes if value instanceof type
-  return no
+    return true if value instanceof type
+  return false
 
 isArrayOrObject = (value) ->
   isArray(value) or isConstructor(value, Object)
 
 arrayEquals = (array1, array2) ->
-  return no if array1.length isnt array2.length
+  return false if array1.length isnt array2.length
   for value1, index in array1
-    return no unless utils.equals value1, array2[index]
-  return yes
+    return false unless utils.equals value1, array2[index]
+  return true
 
 objectEquals = (object1, object2) ->
   keys = Object.keys object1
   for key in Object.keys object2
-    return no unless ~keys.indexOf key
+    return false unless ~keys.indexOf key
   for key in keys
-    return no unless utils.equals object1[key], object2[key]
-  return yes
+    return false unless utils.equals object1[key], object2[key]
+  return true
 
 pluckWithArray = (array, input, output) ->
   array = utils.flatten array

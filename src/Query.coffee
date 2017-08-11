@@ -298,7 +298,7 @@ statics._expr = (expr) ->
 Object.keys(methods).forEach (key) ->
   define Query.prototype, key,
     value: methods[key]
-    writable: yes
+    writable: true
 
 Object.keys(statics).forEach (key) ->
   define Query, key,

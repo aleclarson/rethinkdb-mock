@@ -36,6 +36,6 @@ methods._reset = ->
 Object.keys(methods).forEach (key) ->
   define Result.prototype, key,
     value: methods[key]
-    writable: yes
+    writable: true
 
 module.exports = Result

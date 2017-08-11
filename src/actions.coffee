@@ -21,30 +21,30 @@ actions.ne = (result, args) ->
 actions.gt = (result, args) ->
   prev = result
   for arg in args
-    return no if prev <= arg
+    return false if prev <= arg
     prev = arg
-  return yes
+  return true
 
 actions.lt = (result, args) ->
   prev = result
   for arg in args
-    return no if prev >= arg
+    return false if prev >= arg
     prev = arg
-  return yes
+  return true
 
 actions.ge = (result, args) ->
   prev = result
   for arg in args
-    return no if prev < arg
+    return false if prev < arg
     prev = arg
-  return yes
+  return true
 
 actions.le = (result, args) ->
   prev = result
   for arg in args
-    return no if prev > arg
+    return false if prev > arg
     prev = arg
-  return yes
+  return true
 
 actions.or = (result, args) ->
   return result unless isFalse result
@@ -179,8 +179,8 @@ actions.contains = (array, value) ->
     throw Error "Function argument not yet implemented"
 
   for value2 in array
-    return yes if utils.equals value, value2
-  return no
+    return true if utils.equals value, value2
+  return false
 
 # TODO: Support sorting by an array/object value.
 # TODO: Support `orderBy` function argument
@@ -213,7 +213,7 @@ actions.filter = (array, filter, options) ->
 
     matchers.push (values) ->
       utils.expect values, "OBJECT"
-      return yes
+      return true
 
     Object.keys(filter).forEach (key) ->
       matchers.push (values) ->
@@ -229,8 +229,8 @@ actions.filter = (array, filter, options) ->
 
   return array.filter (row) ->
     for matcher in matchers
-      return no unless matcher row
-    return yes
+      return false unless matcher row
+    return true
 
 actions.fold = ->
   throw Error "Not implemented"
@@ -360,8 +360,8 @@ actions.delete = (result) ->
 
 equals = (result, args) ->
   for arg in args
-    return no unless utils.equals result, arg
-  return yes
+    return false unless utils.equals result, arg
+  return true
 
 isFalse = (value) ->
   (value is null) or (value is false)
@@ -428,8 +428,8 @@ deleteRows = (rows) ->
     @db._tables[@tableId].filter (row) ->
       if ~rows.indexOf row
         deleted += 1
-        return no
-      return yes
+        return false
+      return true
 
   return {deleted}
 

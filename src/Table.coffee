@@ -98,7 +98,7 @@ methods._run = runQuery
 Object.keys(methods).forEach (key) ->
   define Table.prototype, key,
     value: methods[key]
-    writable: yes
+    writable: true
 
 module.exports = Table
 
@@ -148,10 +148,10 @@ getRows = (table, args) ->
   table.filter (row) ->
     for arg in args
       if isArray arg
-        return yes if utils.equals arg, row[key]
+        return true if utils.equals arg, row[key]
       else if arg is row[key]
-        return yes
-    return no
+        return true
+    return false
 
 # TODO: Support `insert` options argument.
 insertRows = (table, rows) ->
