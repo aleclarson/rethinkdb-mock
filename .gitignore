@@ -1,7 +1,1 @@
 node_modules/
-
-src/
-spec/
-**/*.map
-*.md
-LICENSE

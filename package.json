@@ -1,7 +1,11 @@
 {
   "name": "rethinkdb-mock",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "main": "js/index",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aleclarson/rethinkdb-mock.git"
+  },
   "dependencies": {
     "assertType": "aleclarson/assertType#2.0.2",
     "hasKeys": "aleclarson/hasKeys#1.0.0",
