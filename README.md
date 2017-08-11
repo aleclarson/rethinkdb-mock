@@ -3,18 +3,13 @@
 
 An in-memory RethinkDB used for testing.
 
-*Not all methods are implemented yet.*
+The **end goal** is to replicate the API of [`rethinkdbdash`](https://github.com/neumino/rethinkdbdash).<br/>
+For all intents and purposes, you should get the same results.<br/>
+Please review the **Feature support** table before opening an issue.
 
-The **end goal** is to replicate the API of [`rethinkdbdash`](https://github.com/neumino/rethinkdbdash).
-You should get the same results with either library.
-This goal won't be reached (anytime soon) without outside contribution.
+Reusing and nesting queries are fully supported. :+1:
 
-It's pertinent this library is well-tested.
-You can help expose edge cases by writing tests.
-
-If you find a method not behaving as expected, please open an issue!
-
-**Contributions are welcome!** :grin:
+Check out the **Releases** tab for details about the newest versions.
 
 ---
 
@@ -35,7 +30,7 @@ If you find a method not behaving as expected, please open an issue!
 1. Install from Github:
 
 ```sh
-npm install --save-dev aleclarson/rethinkdb-mock#0.4.0
+npm install --save-dev rethinkdb-mock
 ```
 
 2. Put some boilerplate in your test environment:
@@ -75,142 +70,166 @@ describe('Some test suite', () => {
 
 ---
 
-### What's included?
+### Feature support
 
-Be advised that anything on this list may not support specific use cases yet.
+The entire Rethink API is not yet implemented.<br/>
+Get an idea of what's supported by referencing the table below.
 
-**Please open an issue if you want a use case supported!** :+1:
+**Open an issue to request a feature be implemented.**<br/>
+But try implementing it yourself if you have time! :+1:
 
-- Reusing queries
+If a method is not behaving as expected, **please open an issue!**<br/>
+But first check out `TODO.md` for a list of missing behaviors.
 
-- Nesting queries (most of the time)
+> ❌ means "not implemented yet"
+>
+> ⚠️ means "partially implemented"
+>
+> 💯 means "fully implemented"
 
-- `r.table()`
-- `r.do()`
-- `r.expr()`
-- `r.object()`
-- `r.branch()`
-- `r.desc()`
-- `r.typeOf()`
-- `r.uuid()`
-
-- `table.get()`
-- `table.getAll()`
-- `table.insert()`
-- `table.delete()`
-
-- `query()`
-- `query.bracket()`
-- `query.nth()`
-- `query.getField()`
-- `query.hasFields()`
-- `query.offsetsOf()`
-- `query.contains()`
-- `query.isEmpty()`
-- `query.count()`
-- `query.skip()`
-- `query.limit()`
-- `query.slice()`
-- `query.filter()`
-- `query.merge()`
-- `query.pluck()`
-- `query.without()`
-- `query.replace()`
-- `query.update()`
-- `query.delete()`
-- `query.default()`
-- `query.branch()`
-- `query.do()`
-- `query.eq()`
-- `query.ne()`
-- `query.gt()`
-- `query.lt()`
-- `query.ge()`
-- `query.le()`
-- `query.add()`
-- `query.sub()`
-- `query.mul()`
-- `query.div()`
-- `query.and()`
-- `query.or()`
+% | Feature
+--- | ---
+❌ | Changefeeds
+❌ | Binary support
+❌ | Date-time support
+❌ | Geospatial support
+💯 | `r.table()`
+❌ | `r.tableCreate()`
+❌ | `r.tableList()`
+❌ | `r.tableDrop()`
+❌ | `r.indexCreate()`
+❌ | `r.indexList()`
+❌ | `r.indexDrop()`
+❌ | `r.indexRename()`
+❌ | `r.indexStatus()`
+❌ | `r.indexWait()`
+❌ | `r.row`
+💯 | `r()` or `r.expr()`
+💯 | `r.do()`
+❌ | `r.args()`
+💯 | `r.object()`
+💯 | `r.branch()`
+⚠️ | `r.typeOf()`
+💯 | `r.uuid()`
+💯 | `r.desc()`
+💯 | `r.asc()`
+❌ | `r.js()`
+❌ | `r.json()`
+❌ | `r.http()`
+❌ | `r.error()`
+❌ | `r.range()`
+💯 | `table.get()`
+💯 | `table.getAll()`
+⚠️ | `table.insert()`
+💯 | `table.delete()`
+💯 | `query()` or `query.bracket()`
+💯 | `query.nth()`
+💯 | `query.getField()`
+⚠️ | `query.hasFields()`
+❌ | `query.withFields()`
+⚠️ | `query.offsetsOf()`
+⚠️ | `query.contains()`
+⚠️ | `query.orderBy()`
+💯 | `query.isEmpty()`
+💯 | `query.count()`
+💯 | `query.skip()`
+💯 | `query.limit()`
+💯 | `query.slice()`
+❌ | `query.between()`
+⚠️ | `query.filter()`
+💯 | `query.merge()`
+💯 | `query.pluck()`
+⚠️ | `query.without()`
+⚠️ | `query.replace()`
+⚠️ | `query.update()`
+⚠️ | `query.delete()`
+💯 | `query.default()`
+💯 | `query.and()`
+💯 | `query.or()`
+⚠️ | `query.eq()`
+⚠️ | `query.ne()`
+⚠️ | `query.gt()`
+⚠️ | `query.lt()`
+⚠️ | `query.ge()`
+⚠️ | `query.le()`
+⚠️ | `query.add()`
+⚠️ | `query.sub()`
+⚠️ | `query.mul()`
+💯 | `query.div()`
+❌ | `query.mod()`
+❌ | `query.sum()`
+❌ | `query.avg()`
+❌ | `query.min()`
+❌ | `query.max()`
+❌ | `query.not()`
+❌ | `query.ceil()`
+❌ | `query.floor()`
+❌ | `query.round()`
+❌ | `query.random()`
+❌ | `query.coerceTo()`
+❌ | `query.map()`
+❌ | `query.fold()`
+❌ | `query.reduce()`
+❌ | `query.forEach()`
+❌ | `query.distinct()`
+❌ | `query.concatMap()`
+❌ | `query.innerJoin()`
+❌ | `query.outerJoin()`
+❌ | `query.eqJoin()`
+❌ | `query.zip()`
+❌ | `query.group()`
+❌ | `query.ungroup()`
+❌ | `query.sample()`
+❌ | `query.setInsert()`
+❌ | `query.setUnion()`
+❌ | `query.setIntersection()`
+❌ | `query.setDifference()`
+❌ | `query.append()`
+❌ | `query.prepend()`
+❌ | `query.union()`
+❌ | `query.difference()`
+❌ | `query.insertAt()`
+❌ | `query.spliceAt()`
+❌ | `query.deleteAt()`
+❌ | `query.changeAt()`
+❌ | `query.keys()`
+❌ | `query.values()`
+❌ | `query.literal()`
+❌ | `query.match()`
+❌ | `query.split()`
+❌ | `query.upcase()`
+❌ | `query.downcase()`
+❌ | `query.toJSON()` or `query.toJsonString()`
+❌ | `query.info()`
+❌ | `query.sync()`
 
 ---
 
-### What's missing?
+### Contribution
 
-This list may not be exhaustive and will be updated accordingly.
+Any contribution goes a long way for making this library more reliable.
 
-- `r.row`
-- `r.args()`
-- `r.tableCreate()`
-- `r.tableList()`
-- `r.tableDrop()`
-- `r.indexCreate()`
-- `r.indexList()`
-- `r.indexDrop()`
-- `r.indexRename()`
-- `r.indexStatus()`
-- `r.indexWait()`
-- `r.range()`
-- `r.error()`
-- `r.js()`
-- `r.json()`
-- `r.http()`
+Issues and pull requests are always appreciated! :grin:
 
-- `query.info()`
-- `query.sync()`
-- `query.toJSON()`
-- `query.between()`
-- `query.forEach()`
-- `query.coerceTo()`
-- `query.innerJoin()`
-- `query.outerJoin()`
-- `query.eqJoin()`
-- `query.zip()`
-- `query.group()`
-- `query.ungroup()`
-- `query.distinct()`
-- `query.map()`
-- `query.fold()`
-- `query.reduce()`
-- `query.withFields()`
-- `query.concatMap()`
-- `query.sample()`
-- `query.setInsert()`
-- `query.setUnion()`
-- `query.setIntersection()`
-- `query.setDifference()`
-- `query.append()`
-- `query.prepend()`
-- `query.union()`
-- `query.difference()`
-- `query.insertAt()`
-- `query.spliceAt()`
-- `query.deleteAt()`
-- `query.changeAt()`
-- `query.keys()`
-- `query.values()`
-- `query.literal()`
-- `query.match()`
-- `query.split()`
-- `query.upcase()`
-- `query.downcase()`
-- `query.sum()`
-- `query.avg()`
-- `query.min()`
-- `query.max()`
-- `query.mod()`
-- `query.not()`
-- `query.random()`
-- `query.round()`
-- `query.ceil()`
-- `query.floor()`
+The implementation is relatively simple, but if you have any questions, feel free to open an issue.
 
-- Administration methods
-- Geospatial methods
-- Date/time methods
-- Binary support
-- Changefeeds
+You can help expose edge cases by writing tests!
+
+#### Getting started
+
+```sh
+# This tool compiles the `src` directory during `npm install`.
+npm install -g coffee-build
+
+# You can include `-b unstable` for the latest changes.
+git clone https://github.com/aleclarson/rethinkdb-mock
+
+# Install dependencies.
+npm install
+
+# Manually compile the `src` directory after you make any changes.
+coffee -cb -o js src
+```
 
 ---
 
