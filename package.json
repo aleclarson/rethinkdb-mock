@@ -1,0 +1,13 @@
+{
+  "name": "rethinkdb-mock",
+  "version": "0.5.0",
+  "main": "js/index",
+  "dependencies": {
+    "assertType": "aleclarson/assertType#2.0.2",
+    "hasKeys": "aleclarson/hasKeys#1.0.0",
+    "isConstructor": "aleclarson/isConstructor#1.0.0",
+    "setProto": "aleclarson/setProto#1.0.1",
+    "sliceArray": "aleclarson/sliceArray#1.0.0",
+    "uuid": "^3.1.0"
+  }
+}
