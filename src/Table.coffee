@@ -153,7 +153,7 @@ getRows = (table, args) ->
         return yes
     return no
 
-# TODO: Support options argument.
+# TODO: Support `insert` options argument.
 insertRows = (table, rows) ->
   rows = [rows] unless isArray rows
 

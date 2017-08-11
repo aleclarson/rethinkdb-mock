@@ -62,7 +62,7 @@ utils.flatten = (input, output = []) ->
 utils.pluck = (input, keys) ->
   pluckWithArray keys, input, {}
 
-# TODO: Support nested arrays/objects for `without`.
+# TODO: Support nested objects for `without`.
 utils.without = (input, keys) ->
   output = {}
   for key, value of input
