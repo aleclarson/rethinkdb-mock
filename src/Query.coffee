@@ -116,7 +116,7 @@ methods.catch = (onRejected) ->
 #
 
 methods._then = (action, args) ->
-  query = Query this, getType action
+  query = Query this, actions[action].type
   query._action = action
   if args
     query._args = args
@@ -124,19 +124,17 @@ methods._then = (action, args) ->
   return query
 
 methods._parseArgs = ->
-  arity = getArity @_action
-  args =
-    if isArray @_args
-    then @_args
-    else sliceArray @_args
+  args = @_args
 
-  if args.length < arity[0]
-    throw Error "`#{@_action}` takes at least #{arity[0]} argument#{if arity[0] is 1 then "" else "s"}, #{args.length} provided"
+  unless isArray args
+    args = sliceArray args
 
-  if args.length > arity[1]
-    throw Error "`#{@_action}` takes at most #{arity[1]} argument#{if arity[1] is 1 then "" else "s"}, #{args.length} provided"
+  if containsQuery args
+    @_args = Query._args args
+    return
 
-  @_args = Query._expr args
+  utils.assertArity @_action, args
+  @_args = args
   return
 
 methods._eval = (ctx) ->
@@ -146,17 +144,13 @@ methods._eval = (ctx) ->
   if isConstructor action, Function
     return action.call ctx, result
 
+  args = @_args
+  if utils.isQuery args
+    args = args._run()
+    utils.assertArity action, args
+
   if isConstructor action, String
-    args = utils.resolve @_args
-    arity = getArity(action)[1]
-    result =
-      if arity is 0
-      then actions[action].call ctx, result
-      else if arity is 1
-      then actions[action].call ctx, result, args[0]
-      else if arity is 2
-      then actions[action].call ctx, result, args[0], args[1]
-      else actions[action].call ctx, result, args
+    result = actions[action].call ctx, result, args
 
   ctx.type =
     if isConstructor @_type, Function
@@ -286,6 +280,27 @@ statics._expr = (expr) ->
 
   return query
 
+# TODO: Detect queries nested in `r.expr`
+statics._args = (args) ->
+  args = args.map Query._expr
+
+  query = Query null, "ARGS"
+  query._eval = (ctx) ->
+    ctx.type = "DATUM"
+
+    values = []
+    args.forEach (arg) ->
+
+      if arg._type is "ARGS"
+        values = values.concat arg._run()
+        return
+
+      values.push arg._run()
+      return
+
+    return values
+  return query
+
 #
 # Exports
 #
@@ -314,3 +329,22 @@ isArrayOrObject = (value) ->
 isNullError = (error) ->
   !error or /(Index out of bounds|No attribute|null)/i.test error.message
 
+hasQuery = (object) ->
+  for key, value of object
+    if isConstructor value, Object
+      return yes if hasQuery value
+    else if isArray value
+      return yes if containsQuery value
+    else if utils.isQuery value
+      return yes
+  return no
+
+containsQuery = (array) ->
+  for value in array
+    if isConstructor value, Object
+      return yes if hasQuery value
+    else if isArray value
+      return yes if containsQuery value
+    else if utils.isQuery value
+      return yes
+  return no

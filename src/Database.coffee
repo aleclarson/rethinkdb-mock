@@ -69,6 +69,32 @@ methods.do = (arg) ->
 # TODO: You cannot have a sequence nested in an expression. You must use `coerceTo` first.
 methods.expr = Query._expr
 
+methods.args = (args) ->
+
+  # TODO: Support passing `r([])` to `r.args`
+  if utils.isQuery args
+    throw Error "The first argument of `r.args` cannot be a query (yet)"
+
+  utils.expect args, "ARRAY"
+  args = args.map Query._expr
+
+  query = Query null, "ARGS"
+  query._eval = (ctx) ->
+    ctx.type = "DATUM"
+
+    values = []
+    args.forEach (arg) ->
+
+      if arg._type is "ARGS"
+        values = values.concat arg._run()
+        return
+
+      values.push arg._run()
+      return
+
+    return values
+  return query
+
 # TODO: You cannot have a sequence nested in an object. You must use `coerceTo` first.
 methods.object = ->
   args = sliceArray arguments
@@ -94,9 +120,6 @@ methods.object = ->
     ctx.type = @_type
     return result
   return query
-
-# TODO: Support `args`
-# methods.args = (array) ->
 
 methods.asc = (index) -> {ASC: true, index}
 methods.desc = (index) -> {DESC: true, index}
