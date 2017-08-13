@@ -124,10 +124,7 @@ methods._then = (actionId, args) ->
   return query
 
 methods._parseArgs = ->
-  args = @_args
-
-  unless isArray args
-    args = sliceArray args
+  args = utils.cloneArray @_args
 
   if containsQuery args
     @_args = Query._args args

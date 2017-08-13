@@ -71,7 +71,7 @@ utils.without = (input, keys) ->
   return output
 
 utils.merge = (output, inputs) ->
-  output = utils.clone output
+  output = utils.cloneObject output
 
   for input in inputs
     output = merge output, input
@@ -94,24 +94,22 @@ utils.update = (object, patch) ->
   return !!update object, patch
 
 # Replicate an object or array (a simpler alternative to `utils.merge`)
-utils.clone = (values) ->
+utils.clone = (value) ->
+  return null if value is null
+  return utils.cloneArray value if isArray value
+  return utils.cloneObject value if isConstructor value, Object
+  return value
 
-  if values is null
-    return null
+utils.cloneArray = (values) ->
+  clone = new Array values.length
+  for value, index in values
+    clone[index] = utils.clone value
+  return clone
 
-  if isArray values
-    return values.map (value) ->
-      if isArrayOrObject value
-      then utils.clone value
-      else value
-
+utils.cloneObject = (values) ->
   clone = {}
   for key, value of values
-    clone[key] =
-      if isArrayOrObject value
-      then utils.clone value
-      else value
-
+    clone[key] = utils.clone value
   return clone
 
 # Resolves any queries found in a value.
@@ -232,7 +230,7 @@ update = (output, input) ->
 
       unless isConstructor output[key], Object
         changes += 1
-        output[key] = utils.clone value
+        output[key] = utils.cloneObject value
         continue
 
       changes += update output[key], value
@@ -243,7 +241,7 @@ update = (output, input) ->
         continue if arrayEquals value, output[key]
 
       changes += 1
-      output[key] = utils.clone value
+      output[key] = utils.cloneArray value
 
     else if value isnt output[key]
       changes += 1
