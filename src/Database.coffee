@@ -1,5 +1,4 @@
 
-isConstructor = require "isConstructor"
 assertType = require "assertType"
 sliceArray = require "sliceArray"
 setProto = require "setProto"
