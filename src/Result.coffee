@@ -33,9 +33,9 @@ methods._reset = ->
   delete @_eval
   return
 
-Object.keys(methods).forEach (key) ->
+utils.each methods, (method, key) ->
   define Result.prototype, key,
-    value: methods[key]
+    value: method
     writable: true
 
 module.exports = Result

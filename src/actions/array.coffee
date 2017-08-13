@@ -102,9 +102,9 @@ actions.filter = (array, filter, options) ->
       utils.expect values, "OBJECT"
       return true
 
-    Object.keys(filter).forEach (key) ->
+    utils.each filter, (expected, key) ->
       matchers.push (values) ->
-        utils.equals values[key], filter[key]
+        utils.equals values[key], expected
 
   # TODO: Support `filter` function argument
   else if isConstructor filter, Function

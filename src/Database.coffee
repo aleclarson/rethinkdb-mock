@@ -126,8 +126,7 @@ methods.desc = (index) -> {DESC: true, index}
 # TODO: Support `row`
 # methods.row = do ->
 
-Object.keys(methods).forEach (key) ->
-  define Database.prototype, key,
-    value: methods[key]
+utils.each methods, (value, key) ->
+  define Database.prototype, key, {value}
 
 module.exports = Database

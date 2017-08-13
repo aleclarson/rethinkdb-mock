@@ -76,9 +76,9 @@ methods._eval = (ctx) ->
 
 methods._run = runQuery
 
-Object.keys(methods).forEach (key) ->
+utils.each methods, (method, key) ->
   define Table.prototype, key,
-    value: methods[key]
+    value: method
     writable: true
 
 module.exports = Table

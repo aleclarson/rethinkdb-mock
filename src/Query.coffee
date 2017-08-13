@@ -250,8 +250,7 @@ statics._expr = (expr) ->
   if isArrayOrObject expr
     values = expr
     expr = if isArray values then [] else {}
-    Object.keys(values).forEach (key) ->
-      value = values[key]
+    utils.each values, (value, key) ->
 
       unless utils.isQuery value
         expr[key] = Query._expr value
@@ -299,14 +298,13 @@ statics._args = (args) ->
 # Exports
 #
 
-Object.keys(methods).forEach (key) ->
+utils.each methods, (method, key) ->
   define Query.prototype, key,
-    value: methods[key]
+    value: method
     writable: true
 
-Object.keys(statics).forEach (key) ->
-  define Query, key,
-    value: statics[key]
+utils.each statics, (value, key) ->
+  define Query, key, {value}
 
 module.exports = Query
 

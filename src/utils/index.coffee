@@ -112,6 +112,11 @@ utils.cloneObject = (values) ->
     clone[key] = utils.clone value
   return clone
 
+utils.each = (values, iterator) ->
+  for key, value of values
+    iterator value, key
+  return
+
 # Resolves any queries found in a value.
 # Throws an error for undefined values.
 utils.resolve = (value, ctx) ->
