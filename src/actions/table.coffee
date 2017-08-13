@@ -4,6 +4,7 @@ isConstructor = require "isConstructor"
 arity = require "./arity"
 types = require "./types"
 utils = require "../utils"
+uuid = require "../utils/uuid"
 
 {isArray} = Array
 
@@ -25,7 +26,7 @@ types.set
 
 actions = exports
 
-actions.get = (table, rowId, ctx) ->
+actions.get = (table, rowId) ->
 
   if rowId is undefined
     throw Error "Argument 1 to get may not be `undefined`"
@@ -36,13 +37,13 @@ actions.get = (table, rowId, ctx) ->
   if (rowId is null) or isConstructor(rowId, Object)
     throw Error "Primary keys must be either a number, string, bool, pseudotype or array"
 
-  ctx.rowId = rowId
-  ctx.rowIndex = -1
+  @rowId = rowId
+  @rowIndex = -1
 
   index = -1
   while ++index < table.length
     if table[index].id is rowId
-      ctx.rowIndex = index
+      @rowIndex = index
       return table[index]
 
   return null
