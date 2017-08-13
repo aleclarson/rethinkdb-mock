@@ -115,9 +115,9 @@ methods.catch = (onRejected) ->
 # Internal
 #
 
-methods._then = (action, args) ->
-  query = Query this, actions[action].type
-  query._action = action
+methods._then = (actionId, args) ->
+  query = Query this, actions[actionId].type
+  query._actionId = actionId
   if args
     query._args = args
     query._parseArgs()
@@ -133,24 +133,21 @@ methods._parseArgs = ->
     @_args = Query._args args
     return
 
-  utils.assertArity @_action, args
+  utils.assertArity @_actionId, args
   @_args = args
   return
 
 methods._eval = (ctx) ->
-  action = @_action
+  actionId = @_actionId
   result = @_parent._eval ctx
-
-  if isConstructor action, Function
-    return action.call ctx, result
 
   args = @_args
   if utils.isQuery args
     args = args._run()
-    utils.assertArity action, args
+    utils.assertArity actionId, args
 
-  if isConstructor action, String
-    result = actions[action].call ctx, result, args
+  if isConstructor actionId, String
+    result = actions[actionId].call ctx, result, args
 
   ctx.type =
     if isConstructor @_type, Function
