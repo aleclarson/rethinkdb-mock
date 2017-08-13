@@ -32,4 +32,4 @@ types.SELECTION = (ctx) ->
 types.BRACKET = (ctx, args) ->
   unless isConstructor args[0], String
     return "SELECTION" if seqRE.test ctx.type
-  return DATUM
+  return "DATUM"
