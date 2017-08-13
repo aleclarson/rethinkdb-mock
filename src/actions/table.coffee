@@ -135,13 +135,13 @@ actions.replace = (row, values) ->
     throw Error "Primary key `id` cannot be changed"
 
   if row is null
-    table.push utils.clone values
+    table.push values
     return {inserted: 1}
 
   if utils.equals row, values
     return {replaced: 0, unchanged: 1}
 
-  table[@rowIndex] = utils.clone values
+  table[@rowIndex] = values
   return {replaced: 1, unchanged: 0}
 
 actions.delete = (result) ->
