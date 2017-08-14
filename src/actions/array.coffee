@@ -6,7 +6,7 @@ types = require "./types"
 utils = require "../utils"
 seq = require "../utils/seq"
 
-seqRE = /TABLE|SEQUENCE/
+seqRE = /TABLE|SELECTION<ARRAY>/
 
 arity.set
   nth: arity.ONE

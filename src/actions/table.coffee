@@ -18,7 +18,7 @@ arity.set
 
 types.set
   get: "SELECTION"
-  getAll: "SEQUENCE"
+  getAll: "SELECTION<ARRAY>"
   insert: types.DATUM
   update: types.DATUM
   replace: types.DATUM
@@ -206,8 +206,8 @@ deleteRows = (rows) ->
     rows.length = 0
     return {deleted}
 
-  if @type isnt "SEQUENCE"
-    throw Error "Expected type SEQUENCE but found #{@type}"
+  if @type isnt "SELECTION<ARRAY>"
+    throw Error "Expected type SELECTION but found #{@type}"
 
   unless rows.length
     return {deleted: 0}

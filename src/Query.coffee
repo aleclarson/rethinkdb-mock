@@ -10,6 +10,7 @@ utils = require "./utils"
 {isArray} = Array
 
 define = Object.defineProperty
+seqRE = /TABLE|SELECTION<ARRAY>/
 
 Query = (parent, type) ->
   query = (key) -> query.bracket key
@@ -157,7 +158,7 @@ methods._eval = (ctx) ->
 methods._run = (ctx = {}) ->
   ctx.db = @_db
   result = @_eval ctx
-  if /TABLE|SEQUENCE|SELECTION/.test ctx.type
+  if /TABLE|SELECTION/.test ctx.type
     return utils.clone result
   return result
 
@@ -256,7 +257,7 @@ statics._expr = (expr) ->
       unless utils.isQuery value
         value = Query._expr value
 
-      else if /TABLE|SEQUENCE/.test value._type
+      else if seqRE.test value._type
         throw Error "Expected type DATUM but found #{value._type}"
 
       query._lazy = true if value._lazy

@@ -1,7 +1,7 @@
 
 isConstructor = require "isConstructor"
 
-seqRE = /TABLE|SEQUENCE/
+seqRE = /TABLE|SELECTION<ARRAY>/
 
 cache = Object.create null
 
@@ -17,18 +17,17 @@ types.set = (values) ->
 
 types.DATUM = "DATUM"
 
-# Sequences are preserved.
-# Tables are converted to sequences.
+# TABLE becomes SELECTION<ARRAY>
 types.SEQUENCE = (ctx) ->
-  return "SEQUENCE" if seqRE.test ctx.type
+  return "SELECTION<ARRAY>" if seqRE.test ctx.type
   return "DATUM"
 
-# Tables/sequences are converted to a selection.
+# TABLE and SELECTION<ARRAY> become SELECTION
 types.SELECTION = (ctx) ->
   return "SELECTION" if seqRE.test ctx.type
   return "DATUM"
 
-# When the first argument is a number, tables/sequences are converted to a selection.
+# When `args[0]` is numeric, TABLE and SELECTION<ARRAY> become SELECTION
 types.BRACKET = (ctx, args) ->
   unless isConstructor args[0], String
     return "SELECTION" if seqRE.test ctx.type
