@@ -68,6 +68,18 @@ methods.contains = (value) ->
 methods.orderBy = (field) ->
   @_then "orderBy", arguments
 
+# TODO: Support mapping over multiple sequences simultaneously.
+methods.map = (query) ->
+
+  if utils.isQuery query
+    unless query._lazy
+      throw Error "Expected `r.row` or a FUNCTION, but found #{query._type}"
+
+  else if isConstructor query, Function
+    query = Query._expr query Query._row
+
+  @_then "map", arguments
+
 methods.filter = (filter, options) ->
 
   if isConstructor filter, Function

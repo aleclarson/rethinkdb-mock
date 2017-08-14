@@ -13,6 +13,7 @@ arity.set
   offsetsOf: arity.ONE
   contains: arity.ONE
   orderBy: arity.ONE
+  map: arity.ONE
   filter: arity.ONE_TWO
   isEmpty: arity.NONE
   count: arity.NONE
@@ -25,6 +26,7 @@ types.set
   offsetsOf: types.DATUM
   contains: types.DATUM
   orderBy: types.SEQUENCE
+  map: types.DATUM
   filter: types.SEQUENCE
   isEmpty: types.DATUM
   count: types.DATUM
@@ -85,8 +87,11 @@ actions.orderBy = (array, value) ->
 
   return array.slice().sort sorter
 
-# TODO: Implement `fold`
-# actions.fold = ->
+# TODO: Test if rows are properly cloned when mapped.
+actions.map = (array, iterator) ->
+  utils.expect array, "ARRAY"
+  return array.map (row) ->
+    iterator._eval {row}
 
 actions.filter = (array, filter, options) ->
   utils.expect array, "ARRAY"

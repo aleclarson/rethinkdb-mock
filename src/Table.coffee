@@ -40,8 +40,8 @@ methods.do = (callback) ->
     return Query query, actionType
 
 """
-nth bracket getField offsetsOf contains orderBy filter
-fold count limit slice merge pluck without update
+nth bracket getField offsetsOf contains orderBy map
+filter count limit slice merge pluck without update
 """
 .split /\r|\s/
 .forEach (actionId) ->
