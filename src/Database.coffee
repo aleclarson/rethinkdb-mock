@@ -60,7 +60,14 @@ methods.tableCreate = (tableId) ->
   return Query._expr {tables_created: 1}
 
 methods.tableDrop = (tableId) ->
-  throw Error "Not implemented"
+  assertType tableId, String
+  unless tableRE.test tableId
+    throw Error "Table name `#{tableId}` invalid (Use A-Za-z0-9_ only)"
+
+  if delete @_tables[tableId]
+    return Query._expr {tables_dropped: 1}
+
+  throw Error "Table `#{@_name + "." + tableId}` does not exist"
 
 methods.uuid = require "./utils/uuid"
 
