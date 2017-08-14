@@ -69,6 +69,10 @@ methods.orderBy = (field) ->
   @_then "orderBy", arguments
 
 methods.filter = (filter, options) ->
+
+  if isConstructor filter, Function
+    filter = Query._expr filter Query._row
+
   @_then "filter", arguments
 
 methods.isEmpty = ->

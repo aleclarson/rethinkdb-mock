@@ -95,6 +95,11 @@ actions.filter = (array, filter, options) ->
     utils.expect options, "OBJECT"
     # TODO: Support `default` option
 
+  if utils.isQuery filter
+    return array.filter (row) ->
+      result = filter._eval {row}
+      (result isnt false) and (result isnt null)
+
   matchers = []
   if isConstructor filter, Object
 
@@ -105,10 +110,6 @@ actions.filter = (array, filter, options) ->
     utils.each filter, (expected, key) ->
       matchers.push (values) ->
         utils.equals values[key], expected
-
-  # TODO: Support `filter` function argument
-  else if isConstructor filter, Function
-    throw Error "Filter functions are not implemented yet"
 
   # The native API returns the sequence when
   # the filter is neither an object nor function.
