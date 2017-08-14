@@ -47,8 +47,17 @@ methods.table = (tableId) ->
     throw Error "Cannot convert `undefined` with r.expr()"
   return Table this, tableId
 
+# TODO: Support `options` argument
 methods.tableCreate = (tableId) ->
-  throw Error "Not implemented"
+  assertType tableId, String
+  unless tableRE.test tableId
+    throw Error "Table name `#{tableId}` invalid (Use A-Za-z0-9_ only)"
+
+  if @_tables.hasOwnProperty tableId
+    throw Error "Table `#{@_name + "." + tableId}` already exists"
+
+  @_tables[tableId] = []
+  return Query._expr {tables_created: 1}
 
 methods.tableDrop = (tableId) ->
   throw Error "Not implemented"
