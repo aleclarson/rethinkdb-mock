@@ -15,11 +15,11 @@ Please open an issue if you think something should have higher/lower priority.
 - 🔹 Support key maps with `hasFields`
 - 🔹 Support object/array comparison using `gt`, `lt`, `ge`, or `le`
 - 🔹 Support a function argument with `merge`
-- 🔹 Support a function argument with `filter`
 - 🔹 Support a function argument with `orderBy`
 - 🔹 Support a function argument with `contains`
 - 🔹 Support a function argument with `offsetsOf`
 - 🔹 Support all valid return values for `typeOf()`
+- 🔹 Support multiple sequences with `map`
 - 🔹 Support the options of `insert`
 - 🔹 Support the options of `update`
 - 🔹 Support the options of `replace`
