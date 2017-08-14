@@ -1,5 +1,8 @@
 
-xdescribe "r.row", ->
+utils = require "../js/utils"
+
+describe "r.row", ->
+  user1 = users.get 1
 
   beforeAll ->
     db.init users: [
@@ -8,27 +11,31 @@ xdescribe "r.row", ->
     ]
 
   it "works with `update`", ->
-    query = users.get(1).update {age: db.row('age').add 1}
+    query = user1.update {age: db.row("age").add 1}
     expect(query._run()).toEqual {replaced: 1, skipped: 0}
-    expect(users(0)('age')._run()).toBe 24
+    expect(user1("age")._run()).toBe 24
 
-  xit "works with `map`", ->
-    query = users.map db.row('name')
+  it "works with `replace`", ->
+    user1.update(foo: true)._run()
+    query = user1.replace db.row.without "foo"
+    expect(query._run()).toEqual {replaced: 1, skipped: 0}
+    expect(user1.hasFields("foo")._run()).toBe false
+
+  it "works with `map`", ->
+    query = users.map db.row("name")
     expect(query._run()).toEqual ["Alec", "John"]
 
-  xit "works with `filter`", ->
-    query = users.filter db.row('name').match('^A')
-    res = query._run()
-    expected = [users(0)._run()]
-    expect(utils.equals res, expected).toBe true
+  it "works with `filter`", ->
+    query = users.filter db.row("age").lt(30)
+    expect(query._run()[0]).toEqual user1._run()
 
   it "works with arrays", ->
     array = [{x: 1}, {x: 2}]
-    query = db(array).merge {y: db.row('x').add 1}
+    query = db(array).merge {y: db.row("x").add 1}
     res = query._run()
     expected = [{x: 1, y: 2}, {x: 2, y: 3}]
     expect(utils.equals res, expected).toBe true
 
   it "works with objects", ->
-    query = db(x: 1).merge {y: db.row('x').add 1}
+    query = db(x: 1).merge {y: db.row("x").add 1}
     expect(query._run()).toEqual {x: 1, y: 2}

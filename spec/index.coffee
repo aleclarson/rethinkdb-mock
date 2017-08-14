@@ -37,19 +37,49 @@ describe "Database()", ->
       .toThrowError "Cannot convert `-Infinity` to JSON"
 
     it "clones objects", ->
-      query = db.expr obj = {a: 1}
+      data = {a: 1}
+      query = db.expr data
       res = query._run()
-      expect(res).toEqual obj
-      expect(res).not.toBe obj
+      expect(res).toEqual data
+      expect(res).not.toBe data
+
+    it "clones objects nested in objects", ->
+      data = {a: 1}
+      query = db.expr {data}
+      res = query._run().data
+      expect(res).toEqual data
+      expect(res).not.toBe data
+
+    it "clones objects nested in arrays", ->
+      data = {a: 1}
+      query = db.expr [data]
+      res = query._run()[0]
+      expect(res).toEqual data
+      expect(res).not.toBe data
 
     it "clones arrays", ->
-      query = db.expr arr = [1, 2]
+      data = [1, 2]
+      query = db.expr data
       res = query._run()
-      expect(res).toEqual arr
-      expect(res).not.toBe arr
+      expect(res).toEqual data
+      expect(res).not.toBe data
+
+    it "clones arrays nested in objects", ->
+      data = [1, 2]
+      query = db.expr {data}
+      res = query._run().data
+      expect(res).toEqual data
+      expect(res).not.toBe data
+
+    it "clones arrays nested in arrays", ->
+      data = [1, 2]
+      query = db.expr [data]
+      res = query._run()[0]
+      expect(res).toEqual data
+      expect(res).not.toBe data
 
     it "supports nested queries", ->
-      users.insert([{ id: 1, name: "Alec" }, {id: 2, name: "Marie"}])._run()
+      users.insert([{ id: 1, name: "Alec" }, { id: 2, name: "Marie" }])._run()
       query = db.expr [ users.get(1), users.get(2) ]
       expect(query._run()).toEqual db._tables.users
 
@@ -68,6 +98,12 @@ describe "Database()", ->
       args = db.args [ 1 ]
       query = db(1).add db.args [ 1, args, 1 ]
       expect(query._run()).toBe 4
+
+    # NOTE: This is not yet supported.
+    xit "can be used to pass arguments to a chained query", ->
+      args = db.args [ {a: 1}, {b: 1} ]
+      query = args.merge {c: 1}
+      expect(query._run()).toEqual {a: 1, b: 1, c: 1}
 
   describe ".object()", ->
 
