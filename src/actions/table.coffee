@@ -8,6 +8,8 @@ uuid = require "../utils/uuid"
 
 {isArray} = Array
 
+selRE = /TABLE|SELECTION/
+
 arity.set
   get: arity.ONE
   getAll: arity.ONE_PLUS
@@ -111,38 +113,56 @@ actions.update = (result, patch) ->
     return updateRows.call this, result, patch
   return updateRow.call this, result, patch
 
-actions.replace = (row, values) ->
+actions.replace = (rows, values) ->
 
-  if @type isnt "SELECTION"
+  unless selRE.test @type
     throw Error "Expected type SELECTION but found #{@type}"
 
   table = @db._tables[@tableId]
   if values is null
 
-    if row is null
+    if rows is null
       return {deleted: 0, skipped: 1}
+
+    if isArray rows
+      return deleteRows.call this, rows
 
     table.splice @rowIndex, 1
     return {deleted: 1, skipped: 0}
 
-  if "OBJECT" isnt utils.typeOf values
-    throw Error "Inserted value must be an OBJECT (got #{utils.typeOf values})"
-
-  unless values.hasOwnProperty "id"
-    throw Error "Inserted object must have primary key `id`"
-
-  if values.id isnt @rowId
-    throw Error "Primary key `id` cannot be changed"
-
-  if row is null
+  else if rows is null
     table.push values
     return {inserted: 1}
 
-  if utils.equals row, values
-    return {replaced: 0, unchanged: 1}
+  res =
+    errors: 0
+    replaced: 0
+    unchanged: 0
 
-  table[@rowIndex] = values
-  return {replaced: 1, unchanged: 0}
+  rows = [rows] unless isArray rows
+  query = values if utils.isQuery values
+
+  for row in rows
+    values = query._run {row} if query
+
+    if "OBJECT" isnt utils.typeOf values
+      throw Error "Inserted value must be an OBJECT (got #{utils.typeOf values})"
+
+    unless values.hasOwnProperty "id"
+      throw Error "Inserted object must have primary key `id`"
+
+    if values.id isnt row.id
+      res.errors += 1
+      res.first_error ?= "Primary key `id` cannot be changed"
+
+    else if utils.equals row, values
+      res.unchanged += 1
+
+    else
+      table[table.indexOf row] = values
+      res.replaced += 1
+
+  return res
 
 actions.delete = (result) ->
   if isArray result
