@@ -1,6 +1,7 @@
 # TODO: Test `do` callback returning a selection/sequence/table
 
-describe "query._type === SELECTION", ->
+# Selections are single rows derived from a table.
+fdescribe "Selections", ->
 
   beforeAll ->
     db.init users: [
@@ -64,6 +65,9 @@ describe "query._type === SELECTION", ->
       query = users.get(1).update {id: 2, name: "Jeff"}
       expect -> query._run()
       .toThrowError "Primary key `id` cannot be changed"
+
+    it "supports `options.returnChanges`", ->
+      query = users.get(1).update {name:}
 
   describe ".merge()", ->
 

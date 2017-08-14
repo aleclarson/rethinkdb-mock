@@ -7,7 +7,9 @@ global.users = db.table "users"
 describe "Database()", ->
 
   beforeAll ->
-    db.init users: []
+    db.init users: [
+      {id: 1, name: "Alec"}
+    ]
 
   describe "()", ->
 
@@ -50,6 +52,22 @@ describe "Database()", ->
       users.insert([{ id: 1, name: "Alec" }, {id: 2, name: "Marie"}])._run()
       query = db.expr [ users.get(1), users.get(2) ]
       expect(query._run()).toEqual db._tables.users
+
+  describe ".args()", ->
+
+    it "returns an array if not nested", ->
+      args = db.args [ 1 ]
+      expect(args._run()).toEqual [ 1 ]
+
+    it "is merged into the arguments of a query", ->
+      args = db.args [ 1 ]
+      query = db(1).add 1, args, 1, args, 1
+      expect(query._run()).toBe 6
+
+    it "can be nested in other `r.args` queries", ->
+      args = db.args [ 1 ]
+      query = db(1).add db.args [ 1, args, 1 ]
+      expect(query._run()).toBe 4
 
   describe ".object()", ->
 

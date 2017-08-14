@@ -1,5 +1,6 @@
 
-describe "query._type === SEQUENCE", ->
+# Sequences are arrays of rows that are derived from a table.
+describe "Sequences", ->
 
   beforeAll ->
     db.init users: [
