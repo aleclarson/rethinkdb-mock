@@ -10,6 +10,7 @@ utils = require "./utils"
 {isArray} = Array
 
 define = Object.defineProperty
+tableRE = /^[A-Z0-9_]+$/i
 
 Database = (name) ->
   assertType name, String
@@ -27,7 +28,12 @@ methods = {}
 
 methods.init = (tables) ->
   assertType tables, Object
-  @_tables = tables
+  for tableId, table of tables
+    unless tableRE.test tableId
+      throw Error "Table name `#{tableId}` invalid (Use A-Za-z0-9_ only)"
+
+    assertType table, Array
+    @_tables[tableId] = table
   return
 
 methods.load = ->
