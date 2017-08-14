@@ -108,6 +108,7 @@ actions.insert = (table, rows) ->
 
   return res
 
+# TODO: Support `r.row`
 actions.update = (result, patch) ->
   if isArray result
     return updateRows.call this, result, patch
@@ -188,8 +189,8 @@ findRow = (table, rowId) ->
 
 updateRows = (rows, patch) ->
 
-  if @type is "DATUM"
-    throw Error "Expected type SEQUENCE but found DATUM"
+  unless selRE.test @type
+    throw Error "Expected type SELECTION but found #{@type}"
 
   unless rows.length
     return {replaced: 0, unchanged: 0}
@@ -250,5 +251,6 @@ deleteRow = (row) ->
   if @type isnt "SELECTION"
     throw Error "Expected type SELECTION but found #{@type}"
 
-  @db._tables[@tableId].splice @rowIndex, 1
+  table = @db._tables[@tableId]
+  table.splice @rowIndex, 1
   return {deleted: 1, skipped: 0}

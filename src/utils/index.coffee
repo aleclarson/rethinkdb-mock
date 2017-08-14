@@ -144,9 +144,6 @@ inherits = (value, types) ->
     return true if value instanceof type
   return false
 
-isArrayOrObject = (value) ->
-  isArray(value) or isConstructor(value, Object)
-
 arrayEquals = (array1, array2) ->
   return false if array1.length isnt array2.length
   for value1, index in array1

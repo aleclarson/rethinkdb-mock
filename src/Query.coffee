@@ -184,6 +184,7 @@ methods._run = (ctx = {}) ->
 
 statics = {}
 
+# TODO: Evaluate queries from last to first.
 statics._do = (parent, args) ->
 
   unless args.length

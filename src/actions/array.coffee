@@ -70,6 +70,7 @@ actions.contains = (array, value) ->
 
 # TODO: Support sorting by an array/object value.
 # TODO: Support `orderBy` function argument
+# TODO: Support an {index: 'id'} argument
 actions.orderBy = (array, value) ->
   utils.expect array, "ARRAY"
 
