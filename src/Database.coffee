@@ -100,7 +100,7 @@ methods.args = (args) ->
 
   utils.expect args, "ARRAY"
   args = args.map (arg) ->
-    if utils.isQuery(arg) and arg._getRootType() is "ROW"
+    if utils.isQuery(arg) and arg._lazy
       throw Error "Implicit variable `r.row` cannot be used inside `r.args`"
     return Query._expr arg
 

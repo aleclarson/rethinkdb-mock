@@ -18,6 +18,7 @@ Query = (parent, type) ->
     query._db = parent._db
     query._type = type or parent._type
     query._parent = parent
+    query._lazy = true if parent._lazy
   else
     query._db = null
     query._type = type or null
@@ -253,14 +254,14 @@ statics._expr = (expr) ->
     utils.each values, (value, key) ->
 
       unless utils.isQuery value
-        expr[key] = Query._expr value
-        return
+        value = Query._expr value
 
-      if /DATUM|SELECTION|ROW/.test value._type
-        expr[key] = value
-        return
+      else if /TABLE|SEQUENCE/.test value._type
+        throw Error "Expected type DATUM but found #{value._type}"
 
-      throw Error "Expected type DATUM but found #{value._type}"
+      query._lazy = true if value._lazy
+      expr[key] = value
+      return
 
     query._eval = (ctx) ->
       ctx.type = @_type
@@ -275,6 +276,7 @@ statics._expr = (expr) ->
 
 statics._row = do ->
   query = Query null, "ROW"
+  query._lazy = true
   query._eval = (ctx) ->
     ctx.type = "DATUM"
     return ctx.row if ctx.row
@@ -292,13 +294,16 @@ statics._args = (args) ->
     values = []
     args.forEach (arg) ->
 
+      if arg._lazy
+        values.push arg
+        return
+
       if arg._type is "ARGS"
         values = values.concat arg._run()
         return
 
-      if type is "ROW"
-      then values.push arg
-      else values.push arg._run()
+      values.push arg._run()
+      return
 
     return values
   return query
