@@ -8,6 +8,7 @@ hasKeys = require "hasKeys"
 
 typeNames =
   boolean: "BOOL"
+  function: "FUNCTION"
   number: "NUMBER"
   object: "OBJECT"
   string: "STRING"
