@@ -256,7 +256,7 @@ statics._expr = (expr) ->
         expr[key] = Query._expr value
         return
 
-      if /DATUM|SELECTION/.test value._type
+      if /DATUM|SELECTION|ROW/.test value._type
         expr[key] = value
         return
 
@@ -271,6 +271,14 @@ statics._expr = (expr) ->
       ctx.type = @_type
       return expr
 
+  return query
+
+statics._row = do ->
+  query = Query null, "ROW"
+  query._eval = (ctx) ->
+    ctx.type = "DATUM"
+    return ctx.row if ctx.row
+    throw Error "r.row is not defined in this context"
   return query
 
 # TODO: Detect queries nested in `r.expr`
@@ -288,8 +296,9 @@ statics._args = (args) ->
         values = values.concat arg._run()
         return
 
-      values.push arg._run()
-      return
+      if type is "ROW"
+      then values.push arg
+      else values.push arg._run()
 
     return values
   return query

@@ -68,6 +68,8 @@ methods.do = (arg) ->
 # TODO: You cannot have a sequence nested in an expression. You must use `coerceTo` first.
 methods.expr = Query._expr
 
+methods.row = Query._row
+
 methods.args = (args) ->
 
   # TODO: Support passing `r([])` to `r.args`
@@ -75,7 +77,10 @@ methods.args = (args) ->
     throw Error "The first argument of `r.args` cannot be a query (yet)"
 
   utils.expect args, "ARRAY"
-  args = args.map Query._expr
+  args = args.map (arg) ->
+    if utils.isQuery(arg) and arg._getRootType() is "ROW"
+      throw Error "Implicit variable `r.row` cannot be used inside `r.args`"
+    return Query._expr arg
 
   query = Query null, "ARGS"
   query._eval = (ctx) ->
@@ -122,9 +127,6 @@ methods.object = ->
 
 methods.asc = (index) -> {ASC: true, index}
 methods.desc = (index) -> {DESC: true, index}
-
-# TODO: Support `row`
-# methods.row = do ->
 
 utils.each methods, (value, key) ->
   define Database.prototype, key, {value}
