@@ -222,9 +222,14 @@ statics._do = (parent, args) ->
       return utils.resolve value, ctx
     return query
 
+  # TODO: Support `r.row` when no function is given.
   query._eval = (ctx) ->
-    args.forEach (arg) -> utils.resolve arg
-    utils.resolve last, ctx
+    # The given queries are evaluated from last to first.
+    value = utils.resolve last, ctx
+    index = args.length
+    while --index >= 0
+      utils.resolve args[index]
+    return value
   return query
 
 statics._default = (parent, value) ->
