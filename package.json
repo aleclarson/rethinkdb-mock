@@ -1,6 +1,6 @@
 {
   "name": "rethinkdb-mock",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "main": "js/index",
   "plugins": [
     "lotus-coffee"
