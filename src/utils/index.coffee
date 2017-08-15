@@ -71,16 +71,6 @@ utils.without = (input, keys) ->
       output[key] = value
   return output
 
-utils.merge = (output, inputs) ->
-  output = utils.cloneObject output
-
-  for input in inputs
-    output = merge output, input
-
-  if isArray output
-    return utils.resolve output
-  return output
-
 # Returns true if the `patch` changed at least one value.
 utils.update = (object, patch) ->
   return false if patch is null
@@ -203,24 +193,6 @@ pluckWithObject = (object, input, output) ->
         output[key] = value if hasKeys value
 
     else throw TypeError "Invalid path argument"
-
-  return output
-
-# NOTE: Nested queries must be resolved before calling this function.
-merge = (output, input) ->
-
-  # Non-objects overwrite the output.
-  return input unless isConstructor input, Object
-
-  # Nothing to merge into.
-  return input unless isConstructor output, Object
-
-  for key, value of input
-    if isConstructor value, Object
-      if isConstructor output[key], Object
-      then merge output[key], value
-      else output[key] = value
-    else output[key] = value
 
   return output
 

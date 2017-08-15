@@ -59,11 +59,6 @@ seq.slice = (array, args) ->
 
   return array.slice startIndex, endIndex
 
-seq.merge = (rows, args) ->
-  rows.map (row) ->
-    utils.expect row, "OBJECT"
-    utils.merge row, args
-
 seq.pluck = (rows, args) ->
   rows.map (row) ->
     utils.pluck row, args
