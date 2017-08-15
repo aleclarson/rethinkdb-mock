@@ -94,16 +94,16 @@ But first check out `TODO.md` for a list of missing behaviors.
 ❌ | Date-time support
 ❌ | Geospatial support
 💯 | `r.table()`
-❌ | `r.tableCreate()`
+💯 | `r.tableCreate()`
 ❌ | `r.tableList()`
-❌ | `r.tableDrop()`
+💯 | `r.tableDrop()`
 ❌ | `r.indexCreate()`
 ❌ | `r.indexList()`
 ❌ | `r.indexDrop()`
 ❌ | `r.indexRename()`
 ❌ | `r.indexStatus()`
 ❌ | `r.indexWait()`
-❌ | `r.row`
+⚠️ | `r.row`
 💯 | `r()` or `r.expr()`
 💯 | `r.do()`
 ❌ | `r.args()`
@@ -111,8 +111,8 @@ But first check out `TODO.md` for a list of missing behaviors.
 💯 | `r.branch()`
 ⚠️ | `r.typeOf()`
 💯 | `r.uuid()`
-💯 | `r.desc()`
-💯 | `r.asc()`
+⚠️ | `r.desc()`
+⚠️ | `r.asc()`
 ❌ | `r.js()`
 ❌ | `r.json()`
 ❌ | `r.http()`
@@ -136,7 +136,6 @@ But first check out `TODO.md` for a list of missing behaviors.
 💯 | `query.limit()`
 💯 | `query.slice()`
 ❌ | `query.between()`
-⚠️ | `query.filter()`
 💯 | `query.merge()`
 💯 | `query.pluck()`
 ⚠️ | `query.without()`
@@ -167,7 +166,8 @@ But first check out `TODO.md` for a list of missing behaviors.
 ❌ | `query.round()`
 ❌ | `query.random()`
 ❌ | `query.coerceTo()`
-❌ | `query.map()`
+💯 | `query.map()`
+⚠️ | `query.filter()`
 ❌ | `query.fold()`
 ❌ | `query.reduce()`
 ❌ | `query.forEach()`
