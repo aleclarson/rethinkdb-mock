@@ -198,11 +198,21 @@ updateRows = (rows, patch) ->
   if patch is null
     return {replaced: 0, unchanged: rows.length}
 
-  utils.expect patch, "OBJECT"
+  if utils.isQuery patch
+    query = patch
+    update = (row) ->
+      patch = query._eval {row}
+      utils.expect patch, "OBJECT"
+      utils.update row, patch
+
+  else
+    utils.expect patch, "OBJECT"
+    update = (row) ->
+      utils.update row, patch
 
   replaced = 0
   for row in rows
-    if utils.update row, patch
+    if update row, patch
       replaced += 1
 
   return {replaced, unchanged: rows.length - replaced}
@@ -215,6 +225,10 @@ updateRow = (row, patch) ->
   if row is null
     return {replaced: 0, skipped: 1}
 
+  if utils.isQuery patch
+    patch = patch._eval {row}
+
+  utils.expect patch, "OBJECT"
   if utils.update row, patch
     return {replaced: 1, unchanged: 0}
 
