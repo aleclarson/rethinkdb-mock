@@ -213,7 +213,7 @@ statics._do = (parent, args) ->
     return query
 
   query._eval = (ctx) ->
-    args.forEach utils.resolve
+    args.forEach (arg) -> utils.resolve arg
     utils.resolve last, ctx
   return query
 
