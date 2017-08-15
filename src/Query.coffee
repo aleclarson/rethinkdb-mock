@@ -4,7 +4,6 @@ sliceArray = require "sliceArray"
 setProto = require "setProto"
 
 actions = require "./actions"
-Result = require "./Result"
 utils = require "./utils"
 
 {isArray} = Array
@@ -197,19 +196,30 @@ statics._do = (parent, args) ->
   args.unshift parent
 
   if isConstructor last, Function
-    args = args.slice(0, last.length).map Result
-    value = last.apply null, args
+    {length} = last
 
-    if value is undefined
-      throw Error "Anonymous function returned `undefined`. Did you forget a `return`?"
+    # Allow zero arguments, where none of the given queries are evaluated.
+    # Otherwise, enforce the arity of the given function.
+    if (length > 0) and (length isnt args.length)
+      throw Error "Expected function with #{plural "argument", args.length} but found function with #{plural "argument", last.length}"
 
-    unless utils.isQuery value
-      value = Query._expr value
-
+    # TODO: Currently, the given function is called more than once.
+    #   This is different from `rethinkdbdash`, but easier to implement.
+    #   The ideal solution calls the given function once, but also ensures
+    #   the given queries are all called once (no more, no less).
     query._eval = (ctx) ->
-      result = value._eval ctx
-      args.forEach (arg) -> arg._reset()
-      return result
+
+      # Run the given queries once (no more, no less)
+      # only if the given function is using them.
+      value =
+        if length
+        then last.apply null, args.map runOnce
+        else last()
+
+      if value is undefined
+        throw Error "Anonymous function returned `undefined`. Did you forget a `return`?"
+
+      return utils.resolve value, ctx
     return query
 
   query._eval = (ctx) ->
@@ -343,6 +353,15 @@ module.exports = Query
 #
 # Helpers
 #
+
+plural = (noun, count) ->
+  return "1 " + noun if count is 1
+  return count + " " + noun + "s"
+
+runOnce = (arg) ->
+  if utils.isQuery arg
+  then Query._expr arg._run()
+  else Query._expr arg
 
 isFalse = (value) ->
   (value is null) or (value is false)
