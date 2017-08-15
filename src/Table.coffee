@@ -40,7 +40,7 @@ methods.do = (callback) ->
     return Query query, actionType
 
 """
-nth bracket getField offsetsOf contains orderBy map filter
+nth bracket getField hasFields offsetsOf contains orderBy map filter
 count limit slice merge pluck without update replace
 """
 .split /\r|\s/
