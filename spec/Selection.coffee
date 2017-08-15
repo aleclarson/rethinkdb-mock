@@ -15,11 +15,11 @@ describe "Selection", ->
 
     it "replaces an entire row", ->
       query = users.get(1).replace {id: 1, name: "Shaggy"}
-      expect(query._run()).toEqual {replaced: 1, unchanged: 0}
+      expect(query._run()).toEqual {errors: 0, replaced: 1, unchanged: 0}
 
     it "knows if the row has not changed", ->
       query = users.get(1).replace {id: 1, name: "Shaggy"}
-      expect(query._run()).toEqual {replaced: 0, unchanged: 1}
+      expect(query._run()).toEqual {errors: 0, replaced: 0, unchanged: 1}
 
     it "throws if a row was not returned by the parent query", ->
       query = db.expr(1).replace null
@@ -31,10 +31,11 @@ describe "Selection", ->
       expect -> query._run()
       .toThrowError "Inserted object must have primary key `id`"
 
-    it "throws if the primary key is different", ->
+    it "returns an error if the primary key is different", ->
       query = users.get(1).replace {id: 2, name: "Nathan"}
-      expect -> query._run()
-      .toThrowError "Primary key `id` cannot be changed"
+      res = query._run()
+      expect(res.errors).toBe 1
+      expect(res.first_error).toBe "Primary key `id` cannot be changed"
 
     it "deletes the row if the replacement is null", ->
       users.insert {id: 2, name: "Colin"}
@@ -113,6 +114,8 @@ describe "Selection arrays", ->
       expect(res).toEqual ["F", "F", "M"]
 
   # describe ".do()", ->
+  #
+  #   it "converts selections into objects", ->
 
   describe ".nth()", ->
 
@@ -167,9 +170,9 @@ describe "Selection arrays", ->
   describe ".replace()", ->
 
     it "must use `r.row` to avoid errors", ->
-      count = users.count._run()
-      query = users.replace r.row.without "preference"
-      expect(query._run()).toEqual {errors: 0, replaced: count, unchanged: 0}
+      count = users.count()._run()
+      query = users.replace db.row.without "preference"
+      expect(query._run()).toEqual {errors: 0, replaced: count - 1, unchanged: 1}
       expect(users.hasFields("preference")._run()).toEqual []
 
     it "deletes every row when `null` is passed", ->
@@ -243,12 +246,12 @@ describe "Selection arrays", ->
   describe ".without()", ->
 
     it "excludes keys from each result", ->
-      query = users.without "id", "age", "preference"
+      query = users.without "id", "age"
       res = query._run()
       expect(res.length).toBe db._tables.users.length
       res.forEach (user) ->
         expect(Object.keys user).toEqual ["name", "gender"]
 
-  describe ".delete()", ->
-
-    it "deletes every row in the sequence", ->
+  # describe ".delete()", ->
+  #
+  #   it "deletes every row in the sequence", ->

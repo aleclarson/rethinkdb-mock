@@ -1,5 +1,5 @@
 
-describe "Tables", ->
+describe "Table", ->
 
   beforeAll ->
     db.init users: []

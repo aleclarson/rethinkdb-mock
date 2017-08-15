@@ -4,7 +4,7 @@ rethinkdb = require ".."
 global.db = rethinkdb()
 global.users = db.table "users"
 
-describe "Database()", ->
+describe "Database", ->
 
   beforeAll ->
     db.init users: [
