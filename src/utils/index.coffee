@@ -118,8 +118,8 @@ utils.each = (values, iterator) ->
     iterator value, key
   return
 
-# Resolves any queries found in a value.
-# Throws an error for undefined values.
+# Resolve all queries, cloning any selections.
+# If a context is passed, its `type` is mutated.
 utils.resolve = (value, ctx) ->
 
   if utils.isQuery value
@@ -128,10 +128,10 @@ utils.resolve = (value, ctx) ->
   ctx?.type = "DATUM"
 
   if isArray value
-    return resolveArray value
+    return resolveArray value, ctx
 
   if isConstructor value, Object
-    return resolveObject value
+    return resolveObject value, ctx
 
   return value
 
@@ -252,36 +252,26 @@ update = (output, input) ->
 
   return changes
 
-resolveArray = (values) ->
-  clone = []
-  for value, index in values
+resolve = (value, ctx) ->
 
-    if isArray value
-      clone.push resolveArray value
+  if isArray value
+    return resolveArray value, ctx
 
-    else if isConstructor value, Object
-      clone.push resolveObject value
+  if isConstructor value, Object
+    return resolveObject value, ctx
 
-    else if utils.isQuery value
-      clone.push value._run()
+  if utils.isQuery value
+    ctx = Object.assign {}, ctx
+    return value._run ctx
 
-    else clone.push value
+  return value
 
-  return clone
+resolveArray = (values, ctx) ->
+  values.map (value) ->
+    resolve value, ctx
 
-resolveObject = (values) ->
+resolveObject = (values, ctx) ->
   clone = {}
   for key, value of values
-
-    if isArray value
-      clone[key] = resolveArray value
-
-    else if isConstructor value, Object
-      clone[key] = resolveObject value
-
-    else if utils.isQuery value
-      clone[key] = value._run()
-
-    else clone[key] = value
-
+    clone[key] = resolve value, ctx
   return clone

@@ -298,7 +298,7 @@ statics._expr = (expr) ->
 
     query._eval = (ctx) ->
       ctx.type = @_type
-      return utils.resolve expr
+      return utils.resolve expr, ctx
 
   else
     query._eval = (ctx) ->
