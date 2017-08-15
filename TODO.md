@@ -23,6 +23,7 @@ Please open an issue if you think something should have higher/lower priority.
 - 🔹 Support the options of `insert`
 - 🔹 Support the options of `update`
 - 🔹 Support the options of `replace`
+- 🔹 Support `r.row` with `r.desc` and `r.asc`
 - 🔻 Support nested objects with `without`
 - 🔻 Support arrays with `mul`
 - 🔻 Support changefeeds
