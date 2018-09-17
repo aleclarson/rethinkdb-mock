@@ -1,14 +1,10 @@
 {
   "name": "rethinkdb-mock",
   "version": "0.6.0",
-  "main": "js/index",
-  "plugins": [
-    "lotus-coffee"
-  ],
-  "scripts": {
-    "build": "coffee-build -v 1.11.x -b -o js src",
-    "postinstall": "npm run build"
-  },
+  "main": "lib/index.js",
+  "license": "MIT",
+  "repository": "aleclarson/rethinkdb-mock",
+  "description": "Spec-compliant unit-testing for RethinkDB queries",
   "dependencies": {
     "is-plain-object": "^2.0.4",
     "lodash.slice": "^4.2.0",
@@ -17,6 +13,14 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "coffeelint": "^2.1.0"
-  }
+    "coffeelint": "^2.1.0",
+    "coffeescript": "^2.3.1"
+  },
+  "scripts": {
+    "build": "coffee-build src -o lib",
+    "postinstall": "npm run build"
+  },
+  "files": [
+    "lib"
+  ]
 }
