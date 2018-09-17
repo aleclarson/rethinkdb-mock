@@ -16,5 +16,8 @@
     "setProto": "aleclarson/setProto#1.0.1",
     "sliceArray": "aleclarson/sliceArray#1.0.0",
     "uuid": "^3.1.0"
+  },
+  "devDependencies": {
+    "coffeelint": "^2.1.0"
   }
 }
