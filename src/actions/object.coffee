@@ -1,4 +1,4 @@
-isConstructor = require 'isConstructor'
+isPlainObj = require 'is-plain-object'
 
 arity = require './arity'
 types = require './types'
@@ -131,14 +131,14 @@ mergeObjects = (output, inputs) ->
 merge = (output, input) ->
 
   # Non-objects overwrite the output.
-  return input unless isConstructor input, Object
+  return input unless isPlainObj input
 
   # Nothing to merge into.
-  return input unless isConstructor output, Object
+  return input unless isPlainObj output
 
   for key, value of input
-    if isConstructor value, Object
-      if isConstructor output[key], Object
+    if isPlainObj value
+      if isPlainObj output[key]
       then merge output[key], value
       else output[key] = value
     else output[key] = value

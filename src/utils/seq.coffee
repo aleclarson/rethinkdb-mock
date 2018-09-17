@@ -1,4 +1,4 @@
-isConstructor = require 'isConstructor'
+isPlainObj = require 'is-plain-object'
 
 utils = require '.'
 
@@ -40,7 +40,7 @@ seq.hasFields = (array, attrs) ->
 seq.slice = (array, args) ->
 
   options =
-    if isConstructor args[args.length - 1], Object
+    if isPlainObj args[args.length - 1]
     then args.pop()
     else {}
 

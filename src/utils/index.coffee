@@ -1,4 +1,4 @@
-isConstructor = require 'isConstructor'
+isPlainObj = require 'is-plain-object'
 assertType = require 'assertType'
 sliceArray = require 'sliceArray'
 hasKeys = require 'hasKeys'
@@ -44,8 +44,8 @@ utils.equals = (value1, value2) ->
     return false unless isArray value2
     return arrayEquals value1, value2
 
-  if isConstructor value1, Object
-    return false unless isConstructor value2, Object
+  if isPlainObj value1
+    return false unless isPlainObj value2
     return objectEquals value1, value2
 
   return value1 == value2
@@ -87,7 +87,7 @@ utils.update = (object, patch) ->
 utils.clone = (value) ->
   return null if value == null
   return utils.cloneArray value if isArray value
-  return utils.cloneObject value if isConstructor value, Object
+  return utils.cloneObject value if isPlainObj value
   return value
 
 utils.cloneArray = (values) ->
@@ -119,7 +119,7 @@ utils.resolve = (value, ctx) ->
   if isArray value
     return resolveArray value, ctx
 
-  if isConstructor value, Object
+  if isPlainObj value
     return resolveObject value, ctx
 
   return value
@@ -151,11 +151,11 @@ pluckWithArray = (array, input, output) ->
   array = utils.flatten array
   for key in array
 
-    if isConstructor key, String
+    if typeof key == 'string'
       if input.hasOwnProperty key
         output[key] = input[key]
 
-    else if isConstructor key, Object
+    else if isPlainObj key
       pluckWithObject key, input, output
 
     else throw TypeError 'Invalid path argument'
@@ -169,23 +169,23 @@ pluckWithObject = (object, input, output) ->
       if input.hasOwnProperty key
         output[key] = input[key]
 
-    else if isConstructor value, String
-      continue unless isConstructor input[key], Object
+    else if typeof value == 'string'
+      continue unless isPlainObj input[key]
       continue unless input[key].hasOwnProperty value
-      output[key] = {} unless isConstructor output[key], Object
+      output[key] = {} unless isPlainObj output[key]
       output[key][value] = input[key][value]
 
     else if isArray value
-      continue unless isConstructor input[key], Object
-      if isConstructor output[key], Object
+      continue unless isPlainObj input[key]
+      if isPlainObj output[key]
         pluckWithArray value, input[key], output[key]
       else
         value = pluckWithArray value, input[key], {}
         output[key] = value if hasKeys value
 
-    else if isConstructor value, Object
-      continue unless isConstructor input[key], Object
-      if isConstructor output[key], Object
+    else if isPlainObj value
+      continue unless isPlainObj input[key]
+      if isPlainObj output[key]
         pluckWithObject value, input[key], output[key]
       else
         value = pluckWithObject value, input[key], {}
@@ -200,9 +200,9 @@ update = (output, input) ->
   changes = 0
   for key, value of input
 
-    if isConstructor value, Object
+    if isPlainObj value
 
-      unless isConstructor output[key], Object
+      unless isPlainObj output[key]
         changes += 1
         output[key] = utils.cloneObject value
         continue
@@ -228,7 +228,7 @@ resolve = (value, ctx) ->
   if isArray value
     return resolveArray value, ctx
 
-  if isConstructor value, Object
+  if isPlainObj value
     return resolveObject value, ctx
 
   if utils.isQuery value

@@ -1,4 +1,4 @@
-isConstructor = require 'isConstructor'
+isPlainObj = require 'is-plain-object'
 
 arity = require './arity'
 types = require './types'
@@ -48,7 +48,7 @@ actions.nth = (result, index) ->
 actions.offsetsOf = (array, value) ->
   utils.expect array, 'ARRAY'
 
-  if isConstructor value, Function
+  if typeof value == 'function'
     throw Error 'Function argument not yet implemented'
 
   offsets = []
@@ -60,7 +60,7 @@ actions.offsetsOf = (array, value) ->
 actions.contains = (array, value) ->
   utils.expect array, 'ARRAY'
 
-  if isConstructor value, Function
+  if typeof value == 'function'
     throw Error 'Function argument not yet implemented'
 
   for value2 in array
@@ -73,10 +73,10 @@ actions.contains = (array, value) ->
 actions.orderBy = (array, value) ->
   utils.expect array, 'ARRAY'
 
-  if isConstructor value, Object
+  if isPlainObj value
     {DESC, index} = value
 
-  else if isConstructor value, String
+  else if typeof value == 'string'
     index = value
 
   utils.expect index, 'STRING'
@@ -106,7 +106,7 @@ actions.filter = (array, filter, options) ->
       (result != false) and (result != null)
 
   matchers = []
-  if isConstructor filter, Object
+  if isPlainObj filter
 
     matchers.push (values) ->
       utils.expect values, 'OBJECT'

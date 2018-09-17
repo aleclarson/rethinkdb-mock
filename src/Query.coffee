@@ -1,4 +1,4 @@
-isConstructor = require 'isConstructor'
+isPlainObj = require 'is-plain-object'
 sliceArray = require 'sliceArray'
 setProto = require 'setProto'
 
@@ -73,14 +73,14 @@ methods.map = (query) ->
     unless query._lazy
       throw Error "Expected `r.row` or a FUNCTION, but found #{query._type}"
 
-  else if isConstructor query, Function
+  else if typeof query == 'function'
     query = Query._expr query Query._row
 
   @_then 'map', arguments
 
 methods.filter = (filter, options) ->
 
-  if isConstructor filter, Function
+  if typeof filter == 'function'
     filter = Query._expr filter Query._row
 
   @_then 'filter', arguments
@@ -159,11 +159,11 @@ methods._eval = (ctx) ->
     args = args._run()
     utils.assertArity actionId, args
 
-  if isConstructor actionId, String
+  if typeof actionId == 'string'
     result = actions[actionId].call ctx, result, args
 
   ctx.type =
-    if isConstructor @_type, Function
+    if typeof @_type == 'function'
     then @_type.call this, ctx, args
     else @_type
 
@@ -194,7 +194,7 @@ statics._do = (parent, args) ->
   last = args.pop()
   args.unshift parent
 
-  if isConstructor last, Function
+  if typeof last == 'function'
     {length} = last
 
     # Allow zero arguments, where none of the given queries are evaluated.
@@ -272,7 +272,7 @@ statics._expr = (expr) ->
   if expr == undefined
     throw Error 'Cannot convert `undefined` with r.expr()'
 
-  if isConstructor(expr, Number) and not isFinite expr
+  if (typeof expr == 'number') and not isFinite expr
     throw Error "Cannot convert `#{expr}` to JSON"
 
   if utils.isQuery expr
@@ -371,14 +371,14 @@ isFalse = (value) ->
   (value == null) or (value == false)
 
 isArrayOrObject = (value) ->
-  isArray(value) or isConstructor(value, Object)
+  isArray(value) or isPlainObj(value)
 
 isNullError = (error) ->
   !error or /(Index out of bounds|No attribute|null)/i.test error.message
 
 hasQuery = (object) ->
   for key, value of object
-    if isConstructor value, Object
+    if isPlainObj value
       return yes if hasQuery value
     else if isArray value
       return yes if containsQuery value
@@ -388,7 +388,7 @@ hasQuery = (object) ->
 
 containsQuery = (array) ->
   for value in array
-    if isConstructor value, Object
+    if isPlainObj value
       return yes if hasQuery value
     else if isArray value
       return yes if containsQuery value

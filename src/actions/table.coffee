@@ -1,4 +1,4 @@
-isConstructor = require 'isConstructor'
+isPlainObj = require 'is-plain-object'
 
 arity = require './arity'
 types = require './types'
@@ -35,7 +35,7 @@ actions.get = (table, rowId) ->
   if utils.isQuery rowId
     rowId = rowId._run()
 
-  if (rowId == null) or isConstructor(rowId, Object)
+  if (rowId == null) or isPlainObj(rowId)
     throw Error 'Primary keys must be either a number, string, bool, pseudotype or array'
 
   @rowId = rowId
@@ -52,7 +52,7 @@ actions.get = (table, rowId) ->
 actions.getAll = (table, args) ->
   return [] unless args.length
 
-  if isConstructor args[args.length - 1], Object
+  if isPlainObj args[args.length - 1]
     key = args.pop().index
 
   key ?= 'id'
@@ -63,7 +63,7 @@ actions.getAll = (table, args) ->
     if arg == null
       throw Error 'Keys cannot be NULL'
 
-    if isConstructor arg, Object
+    if isPlainObj arg
       throw Error (if key == 'id' then 'Primary' else 'Secondary') + ' keys must be either a number, string, bool, pseudotype or array'
 
   table.filter (row) ->
@@ -181,7 +181,7 @@ findRow = (table, rowId) ->
   if utils.isQuery rowId
     rowId = rowId._run()
 
-  if (rowId == null) or isConstructor(rowId, Object)
+  if (rowId == null) or isPlainObj(rowId)
     throw Error 'Primary keys must be either a number, string, bool, pseudotype or array'
 
   table.find (row) -> row.id == rowId

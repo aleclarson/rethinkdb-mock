@@ -1,5 +1,3 @@
-isConstructor = require 'isConstructor'
-
 seqRE = /TABLE|SELECTION<ARRAY>/
 
 cache = Object.create null
@@ -28,6 +26,6 @@ types.SELECTION = (ctx) ->
 
 # When `args[0]` is numeric, TABLE and SELECTION<ARRAY> become SELECTION
 types.BRACKET = (ctx, args) ->
-  unless isConstructor args[0], String
+  if typeof args[0] != 'string'
     return 'SELECTION' if seqRE.test ctx.type
   return 'DATUM'
