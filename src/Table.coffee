@@ -1,4 +1,4 @@
-assertType = require 'assertType'
+TypeError = require 'type-error'
 sliceArray = require 'sliceArray'
 setProto = require 'setProto'
 

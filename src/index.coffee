@@ -1,4 +1,5 @@
-assertType = require 'assertType'
+isPlainObj = require 'is-plain-object'
+TypeError = require 'type-error'
 
 Database = require './Database'
 Table = require './Table'
@@ -11,7 +12,8 @@ utils.isQuery = utils.isQuery.bind null, [Query, Table]
 cache = Object.create null
 
 rethinkdb = (options = {}) ->
-  assertType options, Object
+  if !isPlainObj options
+    throw TypeError Object, options
 
   name = options.name or 'test'
   return db if db = cache[name]

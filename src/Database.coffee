@@ -1,4 +1,5 @@
-assertType = require 'assertType'
+isPlainObj = require 'is-plain-object'
+TypeError = require 'type-error'
 sliceArray = require 'sliceArray'
 setProto = require 'setProto'
 
@@ -12,7 +13,8 @@ define = Object.defineProperty
 tableRE = /^[A-Z0-9_]+$/i
 
 Database = (name) ->
-  assertType name, String
+  if typeof name != 'string'
+    throw TypeError String, name
 
   r = (value) -> r.expr value
   r._name = name
@@ -26,12 +28,15 @@ Database = (name) ->
 methods = {}
 
 methods.init = (tables) ->
-  assertType tables, Object
+  if !isPlainObj tables
+    throw TypeError Object, tables
+
   for tableId, table of tables
     unless tableRE.test tableId
       throw Error "Table name `#{tableId}` invalid (Use A-Za-z0-9_ only)"
 
-    assertType table, Array
+    if !Array.isArray table
+      throw TypeError Array, table
     @_tables[tableId] = table
   return
 
@@ -48,7 +53,8 @@ methods.table = (tableId) ->
 
 # TODO: Support `options` argument
 methods.tableCreate = (tableId) ->
-  assertType tableId, String
+  if typeof tableId != 'string'
+    throw TypeError String, tableId
   unless tableRE.test tableId
     throw Error "Table name `#{tableId}` invalid (Use A-Za-z0-9_ only)"
 
@@ -59,7 +65,8 @@ methods.tableCreate = (tableId) ->
   return Query._expr {tables_created: 1}
 
 methods.tableDrop = (tableId) ->
-  assertType tableId, String
+  if typeof tableId != 'string'
+    throw TypeError String, tableId
   unless tableRE.test tableId
     throw Error "Table name `#{tableId}` invalid (Use A-Za-z0-9_ only)"
 

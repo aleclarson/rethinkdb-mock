@@ -1,5 +1,5 @@
 isPlainObj = require 'is-plain-object'
-assertType = require 'assertType'
+TypeError = require 'type-error'
 sliceArray = require 'sliceArray'
 hasKeys = require 'hasKeys'
 
@@ -51,8 +51,10 @@ utils.equals = (value1, value2) ->
   return value1 == value2
 
 utils.flatten = (input, output = []) ->
-  assertType input, Array
-  assertType output, Array
+  if !Array.isArray input
+    throw TypeError Array, input
+  if !Array.isArray output
+    throw TypeError Array, output
   for value in input
     if isArray value
     then utils.flatten value, output
