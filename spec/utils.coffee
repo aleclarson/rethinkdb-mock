@@ -1,5 +1,4 @@
-
-utils = require '../js/utils'
+utils = require '../lib/utils'
 
 describe 'utils.equals()', ->
 

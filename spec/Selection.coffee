@@ -1,6 +1,5 @@
 # TODO: Test `do` callback returning a selection/sequence/table
-
-utils = require '../js/utils'
+utils = require '../lib/utils'
 
 # Test queries on a selection from a table.
 describe 'Selection', ->

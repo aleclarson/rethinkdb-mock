@@ -1,5 +1,4 @@
-
-utils = require '../js/utils'
+utils = require '../lib/utils'
 
 describe 'r.row', ->
   user1 = users.get 1

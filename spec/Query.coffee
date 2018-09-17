@@ -1,5 +1,4 @@
-
-utils = require '../js/utils'
+utils = require '../lib/utils'
 
 # Test methods that support primitive types.
 describe 'Query', ->
