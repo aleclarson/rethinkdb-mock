@@ -1,12 +1,11 @@
+isConstructor = require 'isConstructor'
+assertType = require 'assertType'
+sliceArray = require 'sliceArray'
+setProto = require 'setProto'
 
-isConstructor = require "isConstructor"
-assertType = require "assertType"
-sliceArray = require "sliceArray"
-setProto = require "setProto"
-
-actions = require "./actions"
-Query = require "./Query"
-utils = require "./utils"
+actions = require './actions'
+Query = require './Query'
+utils = require './utils'
 
 {isArray} = Array
 
@@ -17,17 +16,17 @@ define = Object.defineProperty
 Table = (db, tableId) ->
   query = (key) -> query.bracket key
   query._db = db
-  query._type = "TABLE"
+  query._type = 'TABLE'
   query._tableId = tableId
   return setProto query, Table.prototype
 
 methods = {}
 
 methods.do = (callback) ->
-  throw Error "Tables must be coerced to arrays before calling `do`"
+  throw Error 'Tables must be coerced to arrays before calling `do`'
 
-"get getAll insert delete"
-.split " "
+'get getAll insert delete'
+.split ' '
 .forEach (actionId) ->
   maxArgs = actions[actionId].arity[1]
   actionType = actions[actionId].type
@@ -39,14 +38,14 @@ methods.do = (callback) ->
       parseArgs.call query
     return Query query, actionType
 
-"""
+'''
 nth bracket getField hasFields offsetsOf contains orderBy map filter
 count limit slice merge pluck without update replace
-"""
+'''
 .split /\r|\s/
 .forEach (actionId) ->
   methods[actionId] = ->
-    return Query this, "TABLE"
+    return Query this, 'TABLE'
       ._then actionId, arguments
 
 methods.run = ->

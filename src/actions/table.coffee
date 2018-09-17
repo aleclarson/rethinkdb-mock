@@ -1,10 +1,9 @@
+isConstructor = require 'isConstructor'
 
-isConstructor = require "isConstructor"
-
-arity = require "./arity"
-types = require "./types"
-utils = require "../utils"
-uuid = require "../utils/uuid"
+arity = require './arity'
+types = require './types'
+utils = require '../utils'
+uuid = require '../utils/uuid'
 
 {isArray} = Array
 
@@ -19,8 +18,8 @@ arity.set
   delete: arity.NONE
 
 types.set
-  get: "SELECTION"
-  getAll: "SELECTION<ARRAY>"
+  get: 'SELECTION'
+  getAll: 'SELECTION<ARRAY>'
   insert: types.DATUM
   update: types.DATUM
   replace: types.DATUM
@@ -31,13 +30,13 @@ actions = exports
 actions.get = (table, rowId) ->
 
   if rowId is undefined
-    throw Error "Argument 1 to get may not be `undefined`"
+    throw Error 'Argument 1 to get may not be `undefined`'
 
   if utils.isQuery rowId
     rowId = rowId._run()
 
   if (rowId is null) or isConstructor(rowId, Object)
-    throw Error "Primary keys must be either a number, string, bool, pseudotype or array"
+    throw Error 'Primary keys must be either a number, string, bool, pseudotype or array'
 
   @rowId = rowId
   @rowIndex = -1
@@ -56,16 +55,16 @@ actions.getAll = (table, args) ->
   if isConstructor args[args.length - 1], Object
     key = args.pop().index
 
-  key ?= "id"
-  utils.expect key, "STRING"
+  key ?= 'id'
+  utils.expect key, 'STRING'
 
   args.forEach (arg, index) ->
 
     if arg is null
-      throw Error "Keys cannot be NULL"
+      throw Error 'Keys cannot be NULL'
 
     if isConstructor arg, Object
-      throw Error (if key is "id" then "Primary" else "Secondary") + " keys must be either a number, string, bool, pseudotype or array"
+      throw Error (if key is 'id' then 'Primary' else 'Secondary') + ' keys must be either a number, string, bool, pseudotype or array'
 
   table.filter (row) ->
     for arg in args
@@ -83,10 +82,10 @@ actions.insert = (table, rows) ->
   generated_keys = []
 
   for row in rows
-    utils.expect row, "OBJECT"
+    utils.expect row, 'OBJECT'
 
     # Check for duplicate primary keys.
-    if row.hasOwnProperty "id"
+    if row.hasOwnProperty 'id'
       if findRow table, row.id
       then errors += 1
       else table.push row
@@ -99,7 +98,7 @@ actions.insert = (table, rows) ->
   res = {errors}
 
   if errors > 0
-    res.first_error = "Duplicate primary key `id`"
+    res.first_error = 'Duplicate primary key `id`'
 
   res.inserted = rows.length - errors
 
@@ -146,15 +145,15 @@ actions.replace = (rows, values) ->
   for row in rows
     values = query._run {row} if query
 
-    if "OBJECT" isnt utils.typeOf values
+    if 'OBJECT' isnt utils.typeOf values
       throw Error "Inserted value must be an OBJECT (got #{utils.typeOf values})"
 
-    unless values.hasOwnProperty "id"
-      throw Error "Inserted object must have primary key `id`"
+    unless values.hasOwnProperty 'id'
+      throw Error 'Inserted object must have primary key `id`'
 
     if values.id isnt row.id
       res.errors += 1
-      res.first_error ?= "Primary key `id` cannot be changed"
+      res.first_error ?= 'Primary key `id` cannot be changed'
 
     else if utils.equals row, values
       res.unchanged += 1
@@ -177,13 +176,13 @@ actions.delete = (result) ->
 findRow = (table, rowId) ->
 
   if rowId is undefined
-    throw Error "Argument 1 to get may not be `undefined`"
+    throw Error 'Argument 1 to get may not be `undefined`'
 
   if utils.isQuery rowId
     rowId = rowId._run()
 
   if (rowId is null) or isConstructor(rowId, Object)
-    throw Error "Primary keys must be either a number, string, bool, pseudotype or array"
+    throw Error 'Primary keys must be either a number, string, bool, pseudotype or array'
 
   table.find (row) -> row.id is rowId
 
@@ -202,11 +201,11 @@ updateRows = (rows, patch) ->
     query = patch
     update = (row) ->
       patch = query._eval {row}
-      utils.expect patch, "OBJECT"
+      utils.expect patch, 'OBJECT'
       utils.update row, patch
 
   else
-    utils.expect patch, "OBJECT"
+    utils.expect patch, 'OBJECT'
     update = (row) ->
       utils.update row, patch
 
@@ -219,7 +218,7 @@ updateRows = (rows, patch) ->
 
 updateRow = (row, patch) ->
 
-  if @type isnt "SELECTION"
+  if @type isnt 'SELECTION'
     throw Error "Expected type SELECTION but found #{@type}"
 
   if row is null
@@ -228,7 +227,7 @@ updateRow = (row, patch) ->
   if utils.isQuery patch
     patch = patch._eval {row}
 
-  utils.expect patch, "OBJECT"
+  utils.expect patch, 'OBJECT'
   if utils.update row, patch
     return {replaced: 1, unchanged: 0}
 
@@ -236,12 +235,12 @@ updateRow = (row, patch) ->
 
 deleteRows = (rows) ->
 
-  if @type is "TABLE"
+  if @type is 'TABLE'
     deleted = rows.length
     rows.length = 0
     return {deleted}
 
-  if @type isnt "SELECTION<ARRAY>"
+  if @type isnt 'SELECTION<ARRAY>'
     throw Error "Expected type SELECTION but found #{@type}"
 
   unless rows.length
@@ -262,7 +261,7 @@ deleteRow = (row) ->
   if row is null
     return {deleted: 0, skipped: 1}
 
-  if @type isnt "SELECTION"
+  if @type isnt 'SELECTION'
     throw Error "Expected type SELECTION but found #{@type}"
 
   table = @db._tables[@tableId]

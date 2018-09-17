@@ -1,11 +1,10 @@
+assertType = require 'assertType'
+sliceArray = require 'sliceArray'
+setProto = require 'setProto'
 
-assertType = require "assertType"
-sliceArray = require "sliceArray"
-setProto = require "setProto"
-
-Table = require "./Table"
-Query = require "./Query"
-utils = require "./utils"
+Table = require './Table'
+Query = require './Query'
+utils = require './utils'
 
 {isArray} = Array
 
@@ -18,7 +17,7 @@ Database = (name) ->
   r = (value) -> r.expr value
   r._name = name
 
-  define r, "_tables",
+  define r, '_tables',
     value: {}
     writable: true
 
@@ -37,14 +36,14 @@ methods.init = (tables) ->
   return
 
 methods.load = ->
-  filePath = require("path").resolve.apply null, arguments
-  json = require("fs").readFileSync filePath, "utf8"
+  filePath = require('path').resolve.apply null, arguments
+  json = require('fs').readFileSync filePath, 'utf8'
   @_tables = JSON.parse json
   return
 
 methods.table = (tableId) ->
   if tableId is undefined
-    throw Error "Cannot convert `undefined` with r.expr()"
+    throw Error 'Cannot convert `undefined` with r.expr()'
   return Table this, tableId
 
 # TODO: Support `options` argument
@@ -54,7 +53,7 @@ methods.tableCreate = (tableId) ->
     throw Error "Table name `#{tableId}` invalid (Use A-Za-z0-9_ only)"
 
   if @_tables.hasOwnProperty tableId
-    throw Error "Table `#{@_name + "." + tableId}` already exists"
+    throw Error "Table `#{@_name + '.' + tableId}` already exists"
 
   @_tables[tableId] = []
   return Query._expr {tables_created: 1}
@@ -67,9 +66,9 @@ methods.tableDrop = (tableId) ->
   if delete @_tables[tableId]
     return Query._expr {tables_dropped: 1}
 
-  throw Error "Table `#{@_name + "." + tableId}` does not exist"
+  throw Error "Table `#{@_name + '.' + tableId}` does not exist"
 
-methods.uuid = require "./utils/uuid"
+methods.uuid = require './utils/uuid'
 
 methods.typeOf = (value) ->
   if arguments.length isnt 1
@@ -84,7 +83,7 @@ methods.branch = (cond) ->
 
 methods.do = (arg) ->
   unless arguments.length
-    throw Error "`do` takes at least 1 argument, 0 provided"
+    throw Error '`do` takes at least 1 argument, 0 provided'
   return Query._do Query._expr(arg), sliceArray arguments, 1
 
 # TODO: You cannot have a sequence nested in an expression. You must use `coerceTo` first.
@@ -96,22 +95,22 @@ methods.args = (args) ->
 
   # TODO: Support passing `r([])` to `r.args`
   if utils.isQuery args
-    throw Error "The first argument of `r.args` cannot be a query (yet)"
+    throw Error 'The first argument of `r.args` cannot be a query (yet)'
 
-  utils.expect args, "ARRAY"
+  utils.expect args, 'ARRAY'
   args = args.map (arg) ->
     if utils.isQuery(arg) and arg._lazy
-      throw Error "Implicit variable `r.row` cannot be used inside `r.args`"
+      throw Error 'Implicit variable `r.row` cannot be used inside `r.args`'
     return Query._expr arg
 
-  query = Query null, "ARGS"
+  query = Query null, 'ARGS'
   query._eval = (ctx) ->
-    ctx.type = "DATUM"
+    ctx.type = 'DATUM'
 
     values = []
     args.forEach (arg) ->
 
-      if arg._type is "ARGS"
+      if arg._type is 'ARGS'
         values = values.concat arg._run()
         return
 
@@ -126,20 +125,20 @@ methods.object = ->
   args = sliceArray arguments
 
   if args.length % 2
-    throw Error "Expected an even number of arguments"
+    throw Error 'Expected an even number of arguments'
 
   args.forEach (arg, index) ->
     if arg is undefined
       throw Error "Argument #{index} to object may not be `undefined`"
 
-  query = Query null, "DATUM"
+  query = Query null, 'DATUM'
   query._eval = (ctx) ->
     result = {}
 
     index = 0
     while index < args.length
       key = utils.resolve args[index]
-      utils.expect key, "STRING"
+      utils.expect key, 'STRING'
       result[key] = utils.resolve args[index + 1]
       index += 2
 

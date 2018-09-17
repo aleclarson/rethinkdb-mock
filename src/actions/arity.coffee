@@ -1,4 +1,3 @@
-
 cache = Object.create null
 
 arity = exports

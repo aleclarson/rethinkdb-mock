@@ -1,7 +1,6 @@
+isConstructor = require 'isConstructor'
 
-isConstructor = require "isConstructor"
-
-utils = require "."
+utils = require '.'
 
 {isArray} = Array
 
@@ -13,7 +12,7 @@ seq.nth = (array, index) ->
     index = array.length + index
 
   if index < 0 or index >= array.length
-    throw RangeError "Index out of bounds"
+    throw RangeError 'Index out of bounds'
 
   return array[index]
 
@@ -21,7 +20,7 @@ seq.getField = (array, attr) ->
   results = []
 
   for value in array
-    utils.expect value, "OBJECT"
+    utils.expect value, 'OBJECT'
     if value.hasOwnProperty attr
       results.push value[attr]
 
@@ -31,13 +30,13 @@ seq.hasFields = (array, attrs) ->
   results = []
 
   for value in array
-    utils.expect value, "OBJECT"
+    utils.expect value, 'OBJECT'
     if utils.hasFields value, attrs
       results.push value
 
   return results
 
-# TODO: Throw error for negative indexes on a "stream".
+# TODO: Throw error for negative indexes on a 'stream'.
 seq.slice = (array, args) ->
 
   options =
@@ -48,13 +47,13 @@ seq.slice = (array, args) ->
   [startIndex, endIndex] = args
   endIndex ?= array.length
 
-  utils.expect startIndex, "NUMBER"
-  utils.expect endIndex, "NUMBER"
+  utils.expect startIndex, 'NUMBER'
+  utils.expect endIndex, 'NUMBER'
 
-  if options.leftBound is "open"
+  if options.leftBound is 'open'
     startIndex += 1
 
-  if options.rightBound is "closed"
+  if options.rightBound is 'closed'
     endIndex += 1
 
   return array.slice startIndex, endIndex

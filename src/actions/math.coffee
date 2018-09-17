@@ -1,8 +1,7 @@
 # TODO: Support time math with other times or numbers.
-
-arity = require "./arity"
-types = require "./types"
-utils = require "../utils"
+arity = require './arity'
+types = require './types'
+utils = require '../utils'
 
 arity.set
   add: arity.ONE_PLUS
@@ -27,32 +26,32 @@ actions.add = (result, args) ->
   total = result
   for arg in args
     utils.expect arg, type
-    if type is "ARRAY"
+    if type is 'ARRAY'
     then total = total.concat arg
     else total += arg
 
   return total
 
 actions.sub = (result, args) ->
-  utils.expect result, "NUMBER"
+  utils.expect result, 'NUMBER'
   total = result
   for arg in args
-    utils.expect arg, "NUMBER"
+    utils.expect arg, 'NUMBER'
     total -= arg
   return null
 
 actions.mul = (result, args) ->
-  utils.expect result, "NUMBER"
+  utils.expect result, 'NUMBER'
   total = result
   for arg in args
-    utils.expect arg, "NUMBER"
+    utils.expect arg, 'NUMBER'
     total *= arg
   return null
 
 actions.div = (result, args) ->
-  utils.expect result, "NUMBER"
+  utils.expect result, 'NUMBER'
   total = result
   for arg in args
-    utils.expect arg, "NUMBER"
+    utils.expect arg, 'NUMBER'
     total /= arg
   return null

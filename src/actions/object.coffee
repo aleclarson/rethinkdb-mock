@@ -1,10 +1,9 @@
+isConstructor = require 'isConstructor'
 
-isConstructor = require "isConstructor"
-
-arity = require "./arity"
-types = require "./types"
-utils = require "../utils"
-seq = require "../utils/seq"
+arity = require './arity'
+types = require './types'
+utils = require '../utils'
+seq = require '../utils/seq'
 
 seqRE = /TABLE|SELECTION<ARRAY>/
 
@@ -29,35 +28,35 @@ actions = exports
 actions.bracket = (result, key) ->
   type = utils.typeOf key
 
-  if type is "NUMBER"
+  if type is 'NUMBER'
 
     if key < -1 and seqRE.test @type
-      throw Error "Cannot use an index < -1 on a stream"
+      throw Error 'Cannot use an index < -1 on a stream'
 
     return seq.nth result, key
 
-  if type isnt "STRING"
+  if type isnt 'STRING'
     throw Error "Expected NUMBER or STRING as second argument to `bracket` but found #{type}"
 
   type = utils.typeOf result
 
-  if type is "ARRAY"
+  if type is 'ARRAY'
     return seq.getField result, key
 
-  if type is "OBJECT"
+  if type is 'OBJECT'
     return utils.getField result, key
 
   throw Error "Expected ARRAY or OBJECT as first argument to `bracket` but found #{type}"
 
 actions.getField = (result, attr) ->
-  utils.expect attr, "STRING"
+  utils.expect attr, 'STRING'
 
   type = utils.typeOf result
 
-  if type is "ARRAY"
+  if type is 'ARRAY'
     return seq.getField result, attr
 
-  if type is "OBJECT"
+  if type is 'OBJECT'
     return utils.getField result, attr
 
   throw Error "Expected ARRAY or OBJECT but found #{type}"
@@ -67,14 +66,14 @@ actions.hasFields = (result, attrs) ->
   attrs = utils.flatten attrs
 
   for attr in attrs
-    utils.expect attr, "STRING"
+    utils.expect attr, 'STRING'
 
   type = utils.typeOf result
 
-  if type is "ARRAY"
+  if type is 'ARRAY'
     return seq.hasFields result, attrs
 
-  if type is "OBJECT"
+  if type is 'OBJECT'
     return utils.hasFields result, attrs
 
   throw Error "Expected ARRAY or OBJECT but found #{type}"
@@ -82,12 +81,12 @@ actions.hasFields = (result, attrs) ->
 actions.merge = (result, args) ->
   type = utils.typeOf result
 
-  if type is "ARRAY"
+  if type is 'ARRAY'
     return result.map (row) ->
-      utils.expect row, "OBJECT"
+      utils.expect row, 'OBJECT'
       mergeObjects row, args
 
-  if type is "OBJECT"
+  if type is 'OBJECT'
     return mergeObjects result, args
 
   throw Error "Expected ARRAY or OBJECT but found #{type}"
@@ -95,10 +94,10 @@ actions.merge = (result, args) ->
 actions.pluck = (result, args) ->
   type = utils.typeOf result
 
-  if type is "ARRAY"
+  if type is 'ARRAY'
     return seq.pluck result, args
 
-  if type is "OBJECT"
+  if type is 'OBJECT'
     return utils.pluck result, args
 
   throw Error "Expected ARRAY or OBJECT but found #{type}"
@@ -107,10 +106,10 @@ actions.without = (result, args) ->
   args = utils.flatten args
   type = utils.typeOf result
 
-  if type is "ARRAY"
+  if type is 'ARRAY'
     return seq.without result, args
 
-  if type is "OBJECT"
+  if type is 'OBJECT'
     return utils.without result, args
 
   throw Error "Expected ARRAY or OBJECT but found #{type}"

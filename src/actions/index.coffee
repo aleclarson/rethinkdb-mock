@@ -1,7 +1,6 @@
-
-arity = require "./arity"
-types = require "./types"
-utils = require "../utils"
+arity = require './arity'
+types = require './types'
+utils = require '../utils'
 
 arity.set
   typeOf: arity.NONE
@@ -45,11 +44,11 @@ wrapAction = (actionId, actionFn) ->
 
 [
   actions
-  require "./math"
-  require "./compare"
-  require "./object"
-  require "./array"
-  require "./table"
+  require './math'
+  require './compare'
+  require './object'
+  require './array'
+  require './table'
 ]
 .forEach (actions) ->
   for actionId, actionFn of actions

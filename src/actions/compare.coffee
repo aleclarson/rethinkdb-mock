@@ -1,8 +1,7 @@
 # TODO: Comparison of objects/arrays with `gt`, `lt`, `ge`, `le`
-
-arity = require "./arity"
-types = require "./types"
-utils = require "../utils"
+arity = require './arity'
+types = require './types'
+utils = require '../utils'
 
 arity.set
   eq: arity.ONE_PLUS

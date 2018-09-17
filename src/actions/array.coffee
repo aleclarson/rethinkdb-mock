@@ -1,10 +1,9 @@
+isConstructor = require 'isConstructor'
 
-isConstructor = require "isConstructor"
-
-arity = require "./arity"
-types = require "./types"
-utils = require "../utils"
-seq = require "../utils/seq"
+arity = require './arity'
+types = require './types'
+utils = require '../utils'
+seq = require '../utils/seq'
 
 seqRE = /TABLE|SELECTION<ARRAY>/
 
@@ -37,20 +36,20 @@ types.set
 actions = exports
 
 actions.nth = (result, index) ->
-  utils.expect result, "ARRAY"
-  utils.expect index, "NUMBER"
+  utils.expect result, 'ARRAY'
+  utils.expect index, 'NUMBER'
 
   if index < -1 and seqRE.test @type
-    throw Error "Cannot use an index < -1 on a stream"
+    throw Error 'Cannot use an index < -1 on a stream'
 
   return seq.nth result, index
 
 # TODO: Support `offsetsOf` function argument
 actions.offsetsOf = (array, value) ->
-  utils.expect array, "ARRAY"
+  utils.expect array, 'ARRAY'
 
   if isConstructor value, Function
-    throw Error "Function argument not yet implemented"
+    throw Error 'Function argument not yet implemented'
 
   offsets = []
   for value2, index in array
@@ -59,10 +58,10 @@ actions.offsetsOf = (array, value) ->
 
 # TODO: Support `contains` function argument
 actions.contains = (array, value) ->
-  utils.expect array, "ARRAY"
+  utils.expect array, 'ARRAY'
 
   if isConstructor value, Function
-    throw Error "Function argument not yet implemented"
+    throw Error 'Function argument not yet implemented'
 
   for value2 in array
     return true if utils.equals value, value2
@@ -72,7 +71,7 @@ actions.contains = (array, value) ->
 # TODO: Support `orderBy` function argument
 # TODO: Support an {index: 'id'} argument
 actions.orderBy = (array, value) ->
-  utils.expect array, "ARRAY"
+  utils.expect array, 'ARRAY'
 
   if isConstructor value, Object
     {DESC, index} = value
@@ -80,7 +79,7 @@ actions.orderBy = (array, value) ->
   else if isConstructor value, String
     index = value
 
-  utils.expect index, "STRING"
+  utils.expect index, 'STRING'
   sorter =
     if DESC
     then sortDescending index
@@ -90,15 +89,15 @@ actions.orderBy = (array, value) ->
 
 # TODO: Test if rows are properly cloned when mapped.
 actions.map = (array, iterator) ->
-  utils.expect array, "ARRAY"
+  utils.expect array, 'ARRAY'
   return array.map (row) ->
     iterator._eval {row}
 
 actions.filter = (array, filter, options) ->
-  utils.expect array, "ARRAY"
+  utils.expect array, 'ARRAY'
 
   if options isnt undefined
-    utils.expect options, "OBJECT"
+    utils.expect options, 'OBJECT'
     # TODO: Support `default` option
 
   if utils.isQuery filter
@@ -110,7 +109,7 @@ actions.filter = (array, filter, options) ->
   if isConstructor filter, Object
 
     matchers.push (values) ->
-      utils.expect values, "OBJECT"
+      utils.expect values, 'OBJECT'
       return true
 
     utils.each filter, (expected, key) ->
@@ -127,42 +126,42 @@ actions.filter = (array, filter, options) ->
     return true
 
 actions.isEmpty = (array) ->
-  utils.expect array, "ARRAY"
+  utils.expect array, 'ARRAY'
   return array.length is 0
 
 actions.count = (array) ->
-  utils.expect array, "ARRAY"
+  utils.expect array, 'ARRAY'
   return array.length
 
 actions.skip = (array, count) ->
-  utils.expect array, "ARRAY"
-  utils.expect count, "NUMBER"
+  utils.expect array, 'ARRAY'
+  utils.expect count, 'NUMBER'
 
   if count < 0 and seqRE.test @type
-    throw Error "Cannot use a negative left index on a stream"
+    throw Error 'Cannot use a negative left index on a stream'
 
   return array.slice count
 
 actions.limit = (array, count) ->
-  utils.expect array, "ARRAY"
-  utils.expect count, "NUMBER"
+  utils.expect array, 'ARRAY'
+  utils.expect count, 'NUMBER'
 
   if count < 0
-    throw Error "LIMIT takes a non-negative argument"
+    throw Error 'LIMIT takes a non-negative argument'
 
   return array.slice 0, count
 
 actions.slice = (result, args) ->
   type = utils.typeOf result
 
-  if type is "ARRAY"
+  if type is 'ARRAY'
     return seq.slice result, args
 
-  if type is "BINARY"
-    throw Error "`slice` does not support BINARY values (yet)"
+  if type is 'BINARY'
+    throw Error '`slice` does not support BINARY values (yet)'
 
-  if type is "STRING"
-    throw Error "`slice` does not support STRING values (yet)"
+  if type is 'STRING'
+    throw Error '`slice` does not support STRING values (yet)'
 
   throw Error "Expected ARRAY, BINARY, or STRING, but found #{type}"
 

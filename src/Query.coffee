@@ -1,10 +1,9 @@
+isConstructor = require 'isConstructor'
+sliceArray = require 'sliceArray'
+setProto = require 'setProto'
 
-isConstructor = require "isConstructor"
-sliceArray = require "sliceArray"
-setProto = require "setProto"
-
-actions = require "./actions"
-utils = require "./utils"
+actions = require './actions'
+utils = require './utils'
 
 {isArray} = Array
 
@@ -27,7 +26,7 @@ Query = (parent, type) ->
 
 # Define methods with infinite arity.
 variadic = (keys) ->
-  keys.split(" ").forEach (key) ->
+  keys.split(' ').forEach (key) ->
     methods[key] = ->
       @_then key, arguments
     return
@@ -45,27 +44,27 @@ methods.do = ->
   args = sliceArray arguments
   return Query._do this, args
 
-variadic "eq ne gt lt ge le or and add sub mul div"
+variadic 'eq ne gt lt ge le or and add sub mul div'
 
 methods.nth = (index) ->
-  @_then "nth", arguments
+  @_then 'nth', arguments
 
 methods.bracket = (key) ->
-  @_then "bracket", arguments
+  @_then 'bracket', arguments
 
 methods.getField = (field) ->
-  @_then "getField", arguments
+  @_then 'getField', arguments
 
-variadic "hasFields"
+variadic 'hasFields'
 
 methods.offsetsOf = (value) ->
-  @_then "offsetsOf", arguments
+  @_then 'offsetsOf', arguments
 
 methods.contains = (value) ->
-  @_then "contains", arguments
+  @_then 'contains', arguments
 
 methods.orderBy = (field) ->
-  @_then "orderBy", arguments
+  @_then 'orderBy', arguments
 
 # TODO: Support mapping over multiple sequences simultaneously.
 methods.map = (query) ->
@@ -77,31 +76,31 @@ methods.map = (query) ->
   else if isConstructor query, Function
     query = Query._expr query Query._row
 
-  @_then "map", arguments
+  @_then 'map', arguments
 
 methods.filter = (filter, options) ->
 
   if isConstructor filter, Function
     filter = Query._expr filter Query._row
 
-  @_then "filter", arguments
+  @_then 'filter', arguments
 
 methods.isEmpty = ->
-  @_then "isEmpty"
+  @_then 'isEmpty'
 
 methods.count = ->
-  @_then "count"
+  @_then 'count'
 
 methods.skip = (count) ->
-  @_then "skip", arguments
+  @_then 'skip', arguments
 
 methods.limit = (count) ->
-  @_then "limit", arguments
+  @_then 'limit', arguments
 
-variadic "slice merge pluck without"
+variadic 'slice merge pluck without'
 
 methods.typeOf = ->
-  @_then "typeOf"
+  @_then 'typeOf'
 
 methods.branch = ->
   args = sliceArray arguments
@@ -110,13 +109,13 @@ methods.branch = ->
   return Query._branch this, args
 
 methods.update = (patch) ->
-  @_then "update", arguments
+  @_then 'update', arguments
 
 methods.replace = (values) ->
-  @_then "replace", arguments
+  @_then 'replace', arguments
 
 methods.delete = ->
-  @_then "delete"
+  @_then 'delete'
 
 methods.run = ->
   Promise.resolve()
@@ -201,7 +200,7 @@ statics._do = (parent, args) ->
     # Allow zero arguments, where none of the given queries are evaluated.
     # Otherwise, enforce the arity of the given function.
     if (length > 0) and (length isnt args.length)
-      throw Error "Expected function with #{plural "argument", args.length} but found function with #{plural "argument", last.length}"
+      throw Error "Expected function with #{plural 'argument', args.length} but found function with #{plural 'argument', last.length}"
 
     # TODO: Currently, the given function is called more than once.
     #   This is different from `rethinkdbdash`, but easier to implement.
@@ -217,7 +216,7 @@ statics._do = (parent, args) ->
         else last()
 
       if value is undefined
-        throw Error "Anonymous function returned `undefined`. Did you forget a `return`?"
+        throw Error 'Anonymous function returned `undefined`. Did you forget a `return`?'
 
       return utils.resolve value, ctx
     return query
@@ -249,7 +248,7 @@ statics._default = (parent, value) ->
 statics._branch = (cond, args) ->
 
   if args.length % 2
-    throw Error "`branch` cannot be called with an even number of arguments"
+    throw Error '`branch` cannot be called with an even number of arguments'
 
   lastIndex = args.length - 1
 
@@ -271,7 +270,7 @@ statics._branch = (cond, args) ->
 statics._expr = (expr) ->
 
   if expr is undefined
-    throw Error "Cannot convert `undefined` with r.expr()"
+    throw Error 'Cannot convert `undefined` with r.expr()'
 
   if isConstructor(expr, Number) and not isFinite expr
     throw Error "Cannot convert `#{expr}` to JSON"
@@ -279,7 +278,7 @@ statics._expr = (expr) ->
   if utils.isQuery expr
     return expr
 
-  query = Query null, "DATUM"
+  query = Query null, 'DATUM'
 
   if isArrayOrObject expr
     values = expr
@@ -308,21 +307,21 @@ statics._expr = (expr) ->
   return query
 
 statics._row = do ->
-  query = Query null, "ROW"
+  query = Query null, 'ROW'
   query._lazy = true
   query._eval = (ctx) ->
-    ctx.type = "DATUM"
+    ctx.type = 'DATUM'
     return ctx.row if ctx.row
-    throw Error "r.row is not defined in this context"
+    throw Error 'r.row is not defined in this context'
   return query
 
 # TODO: Detect queries nested in `r.expr`
 statics._args = (args) ->
   args = args.map Query._expr
 
-  query = Query null, "ARGS"
+  query = Query null, 'ARGS'
   query._eval = (ctx) ->
-    ctx.type = "DATUM"
+    ctx.type = 'DATUM'
 
     values = []
     args.forEach (arg) ->
@@ -331,7 +330,7 @@ statics._args = (args) ->
         values.push arg
         return
 
-      if arg._type is "ARGS"
+      if arg._type is 'ARGS'
         values = values.concat arg._run()
         return
 
@@ -360,8 +359,8 @@ module.exports = Query
 #
 
 plural = (noun, count) ->
-  return "1 " + noun if count is 1
-  return count + " " + noun + "s"
+  return '1 ' + noun if count is 1
+  return count + ' ' + noun + 's'
 
 runOnce = (arg) ->
   if utils.isQuery arg

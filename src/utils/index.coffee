@@ -1,26 +1,25 @@
-
-isConstructor = require "isConstructor"
-assertType = require "assertType"
-sliceArray = require "sliceArray"
-hasKeys = require "hasKeys"
+isConstructor = require 'isConstructor'
+assertType = require 'assertType'
+sliceArray = require 'sliceArray'
+hasKeys = require 'hasKeys'
 
 {isArray} = Array
 
 typeNames =
-  boolean: "BOOL"
-  function: "FUNCTION"
-  number: "NUMBER"
-  object: "OBJECT"
-  string: "STRING"
+  boolean: 'BOOL'
+  function: 'FUNCTION'
+  number: 'NUMBER'
+  object: 'OBJECT'
+  string: 'STRING'
 
 utils = exports
 
 # TODO: Add PTYPE<TIME> for dates.
 utils.typeOf = (value) ->
-  return "NULL" if value is null
-  return "ARRAY" if isArray value
+  return 'NULL' if value is null
+  return 'ARRAY' if isArray value
   return name if name = typeNames[typeof value]
-  throw Error "Unsupported value type"
+  throw Error 'Unsupported value type'
 
 utils.expect = (value, expectedType) ->
   type = utils.typeOf value
@@ -75,12 +74,12 @@ utils.without = (input, keys) ->
 utils.update = (object, patch) ->
   return false if patch is null
 
-  if "OBJECT" isnt utils.typeOf patch
+  if 'OBJECT' isnt utils.typeOf patch
     throw Error "Inserted value must be an OBJECT (got #{utils.typeOf patch})"
 
-  if patch.hasOwnProperty "id"
+  if patch.hasOwnProperty 'id'
     if patch.id isnt object.id
-      throw Error "Primary key `id` cannot be changed"
+      throw Error 'Primary key `id` cannot be changed'
 
   return !!update object, patch
 
@@ -115,7 +114,7 @@ utils.resolve = (value, ctx) ->
   if utils.isQuery value
     return value._run ctx
 
-  ctx?.type = "DATUM"
+  ctx?.type = 'DATUM'
 
   if isArray value
     return resolveArray value, ctx
@@ -159,7 +158,7 @@ pluckWithArray = (array, input, output) ->
     else if isConstructor key, Object
       pluckWithObject key, input, output
 
-    else throw TypeError "Invalid path argument"
+    else throw TypeError 'Invalid path argument'
 
   return output
 
@@ -192,7 +191,7 @@ pluckWithObject = (object, input, output) ->
         value = pluckWithObject value, input[key], {}
         output[key] = value if hasKeys value
 
-    else throw TypeError "Invalid path argument"
+    else throw TypeError 'Invalid path argument'
 
   return output
 
