@@ -67,7 +67,7 @@ utils.pluck = (input, keys) ->
 utils.without = (input, keys) ->
   output = {}
   for key, value of input
-    unless ~keys.indexOf key
+    unless keys.includes key
       output[key] = value
   return output
 
@@ -143,7 +143,7 @@ arrayEquals = (array1, array2) ->
 objectEquals = (object1, object2) ->
   keys = Object.keys object1
   for key in Object.keys object2
-    return false unless ~keys.indexOf key
+    return false unless keys.includes key
   for key in keys
     return false unless utils.equals object1[key], object2[key]
   return true

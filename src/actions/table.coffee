@@ -249,7 +249,7 @@ deleteRows = (rows) ->
   deleted = 0
   @db._tables[@tableId] =
     @db._tables[@tableId].filter (row) ->
-      if ~rows.indexOf row
+      if rows.includes row
         deleted += 1
         return false
       return true
