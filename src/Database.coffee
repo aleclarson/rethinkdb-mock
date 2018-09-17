@@ -1,6 +1,5 @@
 isPlainObj = require 'is-plain-object'
 TypeError = require 'type-error'
-setProto = require 'setProto'
 slice = require 'lodash.slice'
 
 Table = require './Table'
@@ -10,6 +9,7 @@ utils = require './utils'
 {isArray} = Array
 
 define = Object.defineProperty
+setProto = Object.setPrototypeOf
 tableRE = /^[A-Z0-9_]+$/i
 
 Database = (name) ->
@@ -23,7 +23,8 @@ Database = (name) ->
     value: {}
     writable: true
 
-  return setProto r, Database.prototype
+  setProto r, Database.prototype
+  return r
 
 methods = {}
 

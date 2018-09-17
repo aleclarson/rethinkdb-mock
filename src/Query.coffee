@@ -1,5 +1,4 @@
 isPlainObj = require 'is-plain-object'
-setProto = require 'setProto'
 slice = require 'lodash.slice'
 
 actions = require './actions'
@@ -8,6 +7,7 @@ utils = require './utils'
 {isArray} = Array
 
 define = Object.defineProperty
+setProto = Object.setPrototypeOf
 seqRE = /TABLE|SELECTION<ARRAY>/
 
 Query = (parent, type) ->
@@ -22,7 +22,8 @@ Query = (parent, type) ->
     query._db = null
     query._type = type or null
 
-  return setProto query, Query.prototype
+  setProto query, Query.prototype
+  return query
 
 # Define methods with infinite arity.
 variadic = (keys) ->

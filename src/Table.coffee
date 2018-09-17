@@ -1,5 +1,4 @@
 TypeError = require 'type-error'
-setProto = require 'setProto'
 
 actions = require './actions'
 Query = require './Query'
@@ -10,13 +9,15 @@ utils = require './utils'
 parseArgs = Query::_parseArgs
 runQuery = Query::_run
 define = Object.defineProperty
+setProto = Object.setPrototypeOf
 
 Table = (db, tableId) ->
   query = (key) -> query.bracket key
   query._db = db
   query._type = 'TABLE'
   query._tableId = tableId
-  return setProto query, Table.prototype
+  setProto query, Table.prototype
+  return query
 
 methods = {}
 
