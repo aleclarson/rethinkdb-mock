@@ -34,25 +34,25 @@ utils.getField = (value, attr) ->
 
 utils.hasFields = (value, attrs) ->
   for attr in attrs
-    return false unless value.hasOwnProperty attr
+    return false if !value.hasOwnProperty attr
   return true
 
 utils.equals = (value1, value2) ->
 
   if isArray value1
-    return false unless isArray value2
+    return false if !isArray value2
     return arrayEquals value1, value2
 
   if isPlainObj value1
-    return false unless isPlainObj value2
+    return false if !isPlainObj value2
     return objectEquals value1, value2
 
   return value1 == value2
 
 utils.flatten = (input, output = []) ->
-  if !Array.isArray input
+  if !isArray input
     throw TypeError Array, input
-  if !Array.isArray output
+  if !isArray output
     throw TypeError Array, output
   for value in input
     if isArray value
@@ -67,7 +67,7 @@ utils.pluck = (input, keys) ->
 utils.without = (input, keys) ->
   output = {}
   for key, value of input
-    unless keys.includes key
+    if !keys.includes key
       output[key] = value
   return output
 
@@ -137,15 +137,15 @@ inherits = (value, types) ->
 arrayEquals = (array1, array2) ->
   return false if array1.length != array2.length
   for value1, index in array1
-    return false unless utils.equals value1, array2[index]
+    return false if !utils.equals value1, array2[index]
   return true
 
 objectEquals = (object1, object2) ->
   keys = Object.keys object1
   for key in Object.keys object2
-    return false unless keys.includes key
+    return false if !keys.includes key
   for key in keys
-    return false unless utils.equals object1[key], object2[key]
+    return false if !utils.equals object1[key], object2[key]
   return true
 
 pluckWithArray = (array, input, output) ->
@@ -171,13 +171,13 @@ pluckWithObject = (object, input, output) ->
         output[key] = input[key]
 
     else if typeof value == 'string'
-      continue unless isPlainObj input[key]
-      continue unless input[key].hasOwnProperty value
-      output[key] = {} unless isPlainObj output[key]
+      continue if !isPlainObj input[key]
+      continue if !input[key].hasOwnProperty value
+      output[key] = {} if !isPlainObj output[key]
       output[key][value] = input[key][value]
 
     else if isArray value
-      continue unless isPlainObj input[key]
+      continue if !isPlainObj input[key]
       if isPlainObj output[key]
         pluckWithArray value, input[key], output[key]
       else
@@ -185,7 +185,7 @@ pluckWithObject = (object, input, output) ->
         output[key] = value if !noKeys value
 
     else if isPlainObj value
-      continue unless isPlainObj input[key]
+      continue if !isPlainObj input[key]
       if isPlainObj output[key]
         pluckWithObject value, input[key], output[key]
       else
@@ -203,7 +203,7 @@ update = (output, input) ->
 
     if isPlainObj value
 
-      unless isPlainObj output[key]
+      if !isPlainObj output[key]
         changes += 1
         output[key] = utils.cloneObject value
         continue

@@ -50,7 +50,7 @@ actions.get = (table, rowId) ->
   return null
 
 actions.getAll = (table, args) ->
-  return [] unless args.length
+  return [] if !args.length
 
   if isPlainObj args[args.length - 1]
     key = args.pop().index
@@ -76,7 +76,7 @@ actions.getAll = (table, args) ->
 
 # TODO: Support `insert` options argument.
 actions.insert = (table, rows) ->
-  rows = [rows] unless isArray rows
+  rows = [rows] if !isArray rows
 
   errors = 0
   generated_keys = []
@@ -115,7 +115,7 @@ actions.update = (result, patch) ->
 
 actions.replace = (rows, values) ->
 
-  unless selRE.test @type
+  if !selRE.test @type
     throw Error "Expected type SELECTION but found #{@type}"
 
   table = @db._tables[@tableId]
@@ -139,7 +139,7 @@ actions.replace = (rows, values) ->
     replaced: 0
     unchanged: 0
 
-  rows = [rows] unless isArray rows
+  rows = [rows] if !isArray rows
   query = values if utils.isQuery values
 
   for row in rows
@@ -148,7 +148,7 @@ actions.replace = (rows, values) ->
     if 'OBJECT' != utils.typeOf values
       throw Error "Inserted value must be an OBJECT (got #{utils.typeOf values})"
 
-    unless values.hasOwnProperty 'id'
+    if !values.hasOwnProperty 'id'
       throw Error 'Inserted object must have primary key `id`'
 
     if values.id != row.id
@@ -188,10 +188,10 @@ findRow = (table, rowId) ->
 
 updateRows = (rows, patch) ->
 
-  unless selRE.test @type
+  if !selRE.test @type
     throw Error "Expected type SELECTION but found #{@type}"
 
-  unless rows.length
+  if !rows.length
     return {replaced: 0, unchanged: 0}
 
   if patch == null
@@ -243,7 +243,7 @@ deleteRows = (rows) ->
   if @type != 'SELECTION<ARRAY>'
     throw Error "Expected type SELECTION but found #{@type}"
 
-  unless rows.length
+  if !rows.length
     return {deleted: 0}
 
   deleted = 0

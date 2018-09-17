@@ -122,7 +122,7 @@ actions.filter = (array, filter, options) ->
 
   return array.filter (row) ->
     for matcher in matchers
-      return false unless matcher row
+      return false if !matcher row
     return true
 
 actions.isEmpty = (array) ->

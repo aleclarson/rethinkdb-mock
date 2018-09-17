@@ -56,13 +56,13 @@ methods.then = (onFulfilled) ->
 
 methods._eval = (ctx) ->
 
-  unless table = @_db._tables[@_tableId]
+  if !table = @_db._tables[@_tableId]
     throw Error "Table `#{@_tableId}` does not exist"
 
   ctx.type = @_type
   ctx.tableId = @_tableId
 
-  unless @_actionId
+  if !@_actionId
     return table
 
   args = @_args

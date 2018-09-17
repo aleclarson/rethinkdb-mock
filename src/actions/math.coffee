@@ -20,7 +20,7 @@ actions = exports
 # TODO: Support dates and sequences.
 actions.add = (result, args) ->
   type = utils.typeOf result
-  unless /ARRAY|NUMBER|STRING/.test type
+  if !/ARRAY|NUMBER|STRING/.test type
     throw Error "Expected type ARRAY, NUMBER, or STRING but found #{type}"
 
   total = result

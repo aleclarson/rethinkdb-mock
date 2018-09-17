@@ -60,9 +60,9 @@ actions.le = (result, args) ->
   return true
 
 actions.or = (result, args) ->
-  return result unless isFalse result
+  return result if !isFalse result
   for arg in args
-    return arg unless isFalse arg
+    return arg if !isFalse arg
   return args.pop()
 
 actions.and = (result, args) ->
@@ -77,7 +77,7 @@ actions.and = (result, args) ->
 
 equals = (result, args) ->
   for arg in args
-    return false unless utils.equals result, arg
+    return false if !utils.equals result, arg
   return true
 
 isFalse = (value) ->

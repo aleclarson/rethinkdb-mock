@@ -131,10 +131,10 @@ mergeObjects = (output, inputs) ->
 merge = (output, input) ->
 
   # Non-objects overwrite the output.
-  return input unless isPlainObj input
+  return input if !isPlainObj input
 
   # Nothing to merge into.
-  return input unless isPlainObj output
+  return input if !isPlainObj output
 
   for key, value of input
     if isPlainObj value

@@ -33,10 +33,10 @@ methods.init = (tables) ->
     throw TypeError Object, tables
 
   for tableId, table of tables
-    unless tableRE.test tableId
+    if !tableRE.test tableId
       throw Error "Table name `#{tableId}` invalid (Use A-Za-z0-9_ only)"
 
-    if !Array.isArray table
+    if !isArray table
       throw TypeError Array, table
     @_tables[tableId] = table
   return
@@ -56,7 +56,7 @@ methods.table = (tableId) ->
 methods.tableCreate = (tableId) ->
   if typeof tableId != 'string'
     throw TypeError String, tableId
-  unless tableRE.test tableId
+  if !tableRE.test tableId
     throw Error "Table name `#{tableId}` invalid (Use A-Za-z0-9_ only)"
 
   if @_tables.hasOwnProperty tableId
@@ -68,7 +68,7 @@ methods.tableCreate = (tableId) ->
 methods.tableDrop = (tableId) ->
   if typeof tableId != 'string'
     throw TypeError String, tableId
-  unless tableRE.test tableId
+  if !tableRE.test tableId
     throw Error "Table name `#{tableId}` invalid (Use A-Za-z0-9_ only)"
 
   if delete @_tables[tableId]
@@ -90,7 +90,7 @@ methods.branch = (cond) ->
   return Query._branch Query._expr(cond), args
 
 methods.do = (arg) ->
-  unless arguments.length
+  if !arguments.length
     throw Error '`do` takes at least 1 argument, 0 provided'
   return Query._do Query._expr(arg), slice arguments, 1
 

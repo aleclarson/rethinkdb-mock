@@ -71,7 +71,7 @@ methods.orderBy = (field) ->
 methods.map = (query) ->
 
   if utils.isQuery query
-    unless query._lazy
+    if !query._lazy
       throw Error "Expected `r.row` or a FUNCTION, but found #{query._type}"
 
   else if typeof query == 'function'
@@ -186,7 +186,7 @@ statics = {}
 # TODO: Evaluate queries from last to first.
 statics._do = (parent, args) ->
 
-  unless args.length
+  if !args.length
     return parent
 
   query = Query()
@@ -234,7 +234,7 @@ statics._do = (parent, args) ->
 
 statics._default = (parent, value) ->
 
-  unless utils.isQuery value
+  if !utils.isQuery value
     value = Query._expr value
 
   query = Query()
@@ -242,7 +242,7 @@ statics._default = (parent, value) ->
   query._eval = (ctx) ->
     try result = parent._eval ctx
     catch error
-      throw error unless isNullError error
+      throw error if !isNullError error
     return result ? value._eval ctx
   return query
 
@@ -257,12 +257,12 @@ statics._branch = (cond, args) ->
   query._parent = cond
   query._eval = (ctx) ->
 
-    unless isFalse cond._eval {}
+    if !isFalse cond._eval {}
       return utils.resolve args[0], ctx
 
     index = -1
     while (index += 2) != lastIndex
-      unless isFalse utils.resolve args[index]
+      if !isFalse utils.resolve args[index]
         return utils.resolve args[index + 1], ctx
 
     return utils.resolve args[lastIndex], ctx
@@ -286,7 +286,7 @@ statics._expr = (expr) ->
     expr = if isArray values then [] else {}
     utils.each values, (value, key) ->
 
-      unless utils.isQuery value
+      if !utils.isQuery value
         value = Query._expr value
 
       else if seqRE.test value._type
