@@ -1,4 +1,4 @@
-# rethinkdb-mock v0.6.0
+# rethinkdb-mock v0.7.0
 
 Spec-compliant unit-testing for RethinkDB queries
 

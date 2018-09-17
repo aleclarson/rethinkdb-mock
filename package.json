@@ -1,6 +1,6 @@
 {
   "name": "rethinkdb-mock",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "main": "lib/index.js",
   "license": "MIT",
   "repository": "aleclarson/rethinkdb-mock",
