@@ -1,7 +1,6 @@
-
 # rethinkdb-mock v0.6.0
 
-An in-memory RethinkDB used for testing.
+Spec-compliant unit-testing for RethinkDB queries
 
 The **end goal** is to replicate the API of [`rethinkdbdash`](https://github.com/neumino/rethinkdbdash).<br/>
 For all intents and purposes, you should get the same results.<br/>
@@ -11,7 +10,7 @@ Reusing and nesting queries are fully supported. :+1:
 
 Check out the **Releases** tab for details about the newest versions.
 
----
+&nbsp;
 
 ### Why use this?
 
@@ -23,7 +22,7 @@ Check out the **Releases** tab for details about the newest versions.
 - Avoid mutilating your development `rethinkdb_data`
 - Continuous integration compatibility
 
----
+&nbsp;
 
 ### Getting started
 
@@ -68,7 +67,7 @@ describe('Some test suite', () => {
 })
 ```
 
----
+&nbsp;
 
 ### Feature support
 
@@ -203,17 +202,15 @@ But first check out `TODO.md` for a list of missing behaviors.
 ❌ | `query.info()`
 ❌ | `query.sync()`
 
----
+&nbsp;
 
-### Contribution
-
-Any contribution goes a long way for making this library more reliable.
+### Contributing
 
 Issues and pull requests are always appreciated! :grin:
 
-The implementation is relatively simple, but if you have any questions, feel free to open an issue.
+If you have any questions, feel free to open an issue.
 
-You can help expose edge cases by writing tests!
+&nbsp;
 
 #### Getting started
 
@@ -221,19 +218,16 @@ You can help expose edge cases by writing tests!
 # This tool compiles the `src` directory during `npm install`.
 npm install -g coffee-build
 
-# You can include `-b unstable` for the latest changes.
 git clone https://github.com/aleclarson/rethinkdb-mock
-
-# Install dependencies.
 npm install
 
 # Manually compile the `src` directory after you make any changes.
 coffee -cb -o js src
 ```
 
----
+&nbsp;
 
 ### Similar repositories
 
-- [JohanObrink/rethink-mock](https://github.com/JohanObrink/rethink-mock): Stubs for `sinon` (last updated August 2016)
+- [JohanObrink/rethink-mock](https://github.com/JohanObrink/rethink-mock): Stubs for `sinon` (last updated October 2017)
 - [vasc/rethinkdb-mock](https://github.com/vasc/rethinkdb-mock): Small subset of Rethink API, not spec-compliant (last updated April 2014)
