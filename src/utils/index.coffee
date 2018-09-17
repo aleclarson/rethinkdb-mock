@@ -1,6 +1,5 @@
 isPlainObj = require 'is-plain-object'
 TypeError = require 'type-error'
-sliceArray = require 'sliceArray'
 hasKeys = require 'hasKeys'
 
 {isArray} = Array

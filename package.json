@@ -12,8 +12,8 @@
   "dependencies": {
     "hasKeys": "aleclarson/hasKeys#1.0.0",
     "is-plain-object": "^2.0.4",
+    "lodash.slice": "^4.2.0",
     "setProto": "aleclarson/setProto#1.0.1",
-    "sliceArray": "aleclarson/sliceArray#1.0.0",
     "type-error": "^1.0.3",
     "uuid": "^3.1.0"
   },

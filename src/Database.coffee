@@ -1,7 +1,7 @@
 isPlainObj = require 'is-plain-object'
 TypeError = require 'type-error'
-sliceArray = require 'sliceArray'
 setProto = require 'setProto'
+slice = require 'lodash.slice'
 
 Table = require './Table'
 Query = require './Query'
@@ -83,7 +83,7 @@ methods.typeOf = (value) ->
   return Query._expr(value).typeOf()
 
 methods.branch = (cond) ->
-  args = sliceArray arguments, 1
+  args = slice arguments, 1
   if args.length < 2
     throw Error "`branch` takes at least 3 arguments, #{args.length + 1} provided"
   return Query._branch Query._expr(cond), args
@@ -91,7 +91,7 @@ methods.branch = (cond) ->
 methods.do = (arg) ->
   unless arguments.length
     throw Error '`do` takes at least 1 argument, 0 provided'
-  return Query._do Query._expr(arg), sliceArray arguments, 1
+  return Query._do Query._expr(arg), slice arguments, 1
 
 # TODO: You cannot have a sequence nested in an expression. You must use `coerceTo` first.
 methods.expr = Query._expr
@@ -129,7 +129,7 @@ methods.args = (args) ->
 
 # TODO: You cannot have a sequence nested in an object. You must use `coerceTo` first.
 methods.object = ->
-  args = sliceArray arguments
+  args = slice arguments
 
   if args.length % 2
     throw Error 'Expected an even number of arguments'

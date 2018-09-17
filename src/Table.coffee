@@ -1,5 +1,4 @@
 TypeError = require 'type-error'
-sliceArray = require 'sliceArray'
 setProto = require 'setProto'
 
 actions = require './actions'

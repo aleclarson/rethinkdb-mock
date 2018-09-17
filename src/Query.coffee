@@ -1,6 +1,6 @@
 isPlainObj = require 'is-plain-object'
-sliceArray = require 'sliceArray'
 setProto = require 'setProto'
+slice = require 'lodash.slice'
 
 actions = require './actions'
 utils = require './utils'
@@ -41,7 +41,7 @@ methods.default = (value) ->
   Query._default this, value
 
 methods.do = ->
-  args = sliceArray arguments
+  args = slice arguments
   return Query._do this, args
 
 variadic 'eq ne gt lt ge le or and add sub mul div'
@@ -103,7 +103,7 @@ methods.typeOf = ->
   @_then 'typeOf'
 
 methods.branch = ->
-  args = sliceArray arguments
+  args = slice arguments
   if args.length < 2
     throw Error "`branch` takes at least 2 arguments, #{args.length} provided"
   return Query._branch this, args
