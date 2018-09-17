@@ -20,7 +20,7 @@
   },
   "scripts": {
     "build": "coffee-build src -o lib",
-    "postinstall": "npm run build"
+    "prepare": "npm run build"
   },
   "files": [
     "lib"
