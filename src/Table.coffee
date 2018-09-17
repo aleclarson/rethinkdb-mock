@@ -42,7 +42,7 @@ methods.do = (callback) ->
 nth bracket getField hasFields offsetsOf contains orderBy map filter
 count limit slice merge pluck without update replace
 '''
-.split /\r|\s/
+.split /\s/
 .forEach (actionId) ->
   methods[actionId] = ->
     return Query this, 'TABLE'
