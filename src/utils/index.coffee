@@ -1,6 +1,6 @@
 isPlainObj = require 'is-plain-object'
 TypeError = require 'type-error'
-hasKeys = require 'hasKeys'
+noKeys = require 'no-keys'
 
 {isArray} = Array
 
@@ -182,7 +182,7 @@ pluckWithObject = (object, input, output) ->
         pluckWithArray value, input[key], output[key]
       else
         value = pluckWithArray value, input[key], {}
-        output[key] = value if hasKeys value
+        output[key] = value if !noKeys value
 
     else if isPlainObj value
       continue unless isPlainObj input[key]
@@ -190,7 +190,7 @@ pluckWithObject = (object, input, output) ->
         pluckWithObject value, input[key], output[key]
       else
         value = pluckWithObject value, input[key], {}
-        output[key] = value if hasKeys value
+        output[key] = value if !noKeys value
 
     else throw TypeError 'Invalid path argument'
 
