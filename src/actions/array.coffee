@@ -96,14 +96,14 @@ actions.map = (array, iterator) ->
 actions.filter = (array, filter, options) ->
   utils.expect array, 'ARRAY'
 
-  if options isnt undefined
+  if options != undefined
     utils.expect options, 'OBJECT'
     # TODO: Support `default` option
 
   if utils.isQuery filter
     return array.filter (row) ->
       result = filter._eval {row}
-      (result isnt false) and (result isnt null)
+      (result != false) and (result != null)
 
   matchers = []
   if isConstructor filter, Object
@@ -117,7 +117,7 @@ actions.filter = (array, filter, options) ->
         utils.equals values[key], expected
 
   # The native API returns the sequence when
-  # the filter is neither an object nor function.
+  # the filter == neither an object nor function.
   else return array
 
   return array.filter (row) ->
@@ -127,7 +127,7 @@ actions.filter = (array, filter, options) ->
 
 actions.isEmpty = (array) ->
   utils.expect array, 'ARRAY'
-  return array.length is 0
+  return array.length == 0
 
 actions.count = (array) ->
   utils.expect array, 'ARRAY'
@@ -154,13 +154,13 @@ actions.limit = (array, count) ->
 actions.slice = (result, args) ->
   type = utils.typeOf result
 
-  if type is 'ARRAY'
+  if type == 'ARRAY'
     return seq.slice result, args
 
-  if type is 'BINARY'
+  if type == 'BINARY'
     throw Error '`slice` does not support BINARY values (yet)'
 
-  if type is 'STRING'
+  if type == 'STRING'
     throw Error '`slice` does not support STRING values (yet)'
 
   throw Error "Expected ARRAY, BINARY, or STRING, but found #{type}"
@@ -170,17 +170,17 @@ actions.slice = (result, args) ->
 #
 
 # Objects with lesser values come first.
-# An undefined value is treated as less than any defined value.
-# When two values are equal, the first value is treated as lesser.
+# An undefined value == treated as less than any defined value.
+# When two values are equal, the first value == treated as lesser.
 sortAscending = (index) -> (a, b) ->
-  return 1 if b[index] is undefined
+  return 1 if b[index] == undefined
   return 1 if a[index] > b[index]
   return -1
 
 # Objects with greater values come first.
-# An undefined value is treated as less than any defined value.
-# When two values are equal, the first value is treated as greater.
+# An undefined value == treated as less than any defined value.
+# When two values are equal, the first value == treated as greater.
 sortDescending = (index) -> (a, b) ->
-  return -1 if b[index] is undefined
+  return -1 if b[index] == undefined
   return -1 if a[index] >= b[index]
   return 1

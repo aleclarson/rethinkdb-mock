@@ -16,14 +16,14 @@ utils = exports
 
 # TODO: Add PTYPE<TIME> for dates.
 utils.typeOf = (value) ->
-  return 'NULL' if value is null
+  return 'NULL' if value == null
   return 'ARRAY' if isArray value
   return name if name = typeNames[typeof value]
   throw Error 'Unsupported value type'
 
 utils.expect = (value, expectedType) ->
   type = utils.typeOf value
-  if type isnt expectedType
+  if type != expectedType
     throw Error "Expected type #{expectedType} but found #{type}"
 
 utils.isQuery = (queryTypes, value) ->
@@ -48,7 +48,7 @@ utils.equals = (value1, value2) ->
     return false unless isConstructor value2, Object
     return objectEquals value1, value2
 
-  return value1 is value2
+  return value1 == value2
 
 utils.flatten = (input, output = []) ->
   assertType input, Array
@@ -72,20 +72,20 @@ utils.without = (input, keys) ->
 
 # Returns true if the `patch` changed at least one value.
 utils.update = (object, patch) ->
-  return false if patch is null
+  return false if patch == null
 
-  if 'OBJECT' isnt utils.typeOf patch
+  if 'OBJECT' != utils.typeOf patch
     throw Error "Inserted value must be an OBJECT (got #{utils.typeOf patch})"
 
   if patch.hasOwnProperty 'id'
-    if patch.id isnt object.id
+    if patch.id != object.id
       throw Error 'Primary key `id` cannot be changed'
 
   return !!update object, patch
 
 # Replicate an object or array (a simpler alternative to `utils.merge`)
 utils.clone = (value) ->
-  return null if value is null
+  return null if value == null
   return utils.cloneArray value if isArray value
   return utils.cloneObject value if isConstructor value, Object
   return value
@@ -134,7 +134,7 @@ inherits = (value, types) ->
   return false
 
 arrayEquals = (array1, array2) ->
-  return false if array1.length isnt array2.length
+  return false if array1.length != array2.length
   for value1, index in array1
     return false unless utils.equals value1, array2[index]
   return true
@@ -165,7 +165,7 @@ pluckWithArray = (array, input, output) ->
 pluckWithObject = (object, input, output) ->
   for key, value of object
 
-    if value is true
+    if value == true
       if input.hasOwnProperty key
         output[key] = input[key]
 
@@ -217,7 +217,7 @@ update = (output, input) ->
       changes += 1
       output[key] = utils.cloneArray value
 
-    else if value isnt output[key]
+    else if value != output[key]
       changes += 1
       output[key] = value
 

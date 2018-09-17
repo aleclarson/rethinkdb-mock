@@ -26,7 +26,7 @@ actions.add = (result, args) ->
   total = result
   for arg in args
     utils.expect arg, type
-    if type is 'ARRAY'
+    if type == 'ARRAY'
     then total = total.concat arg
     else total += arg
 

@@ -81,4 +81,4 @@ equals = (result, args) ->
   return true
 
 isFalse = (value) ->
-  (value is null) or (value is false)
+  (value == null) or (value == false)

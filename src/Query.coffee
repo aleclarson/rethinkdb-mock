@@ -199,7 +199,7 @@ statics._do = (parent, args) ->
 
     # Allow zero arguments, where none of the given queries are evaluated.
     # Otherwise, enforce the arity of the given function.
-    if (length > 0) and (length isnt args.length)
+    if (length > 0) and (length != args.length)
       throw Error "Expected function with #{plural 'argument', args.length} but found function with #{plural 'argument', last.length}"
 
     # TODO: Currently, the given function is called more than once.
@@ -215,7 +215,7 @@ statics._do = (parent, args) ->
         then last.apply null, args.map runOnce
         else last()
 
-      if value is undefined
+      if value == undefined
         throw Error 'Anonymous function returned `undefined`. Did you forget a `return`?'
 
       return utils.resolve value, ctx
@@ -260,7 +260,7 @@ statics._branch = (cond, args) ->
       return utils.resolve args[0], ctx
 
     index = -1
-    while (index += 2) isnt lastIndex
+    while (index += 2) != lastIndex
       unless isFalse utils.resolve args[index]
         return utils.resolve args[index + 1], ctx
 
@@ -269,7 +269,7 @@ statics._branch = (cond, args) ->
 
 statics._expr = (expr) ->
 
-  if expr is undefined
+  if expr == undefined
     throw Error 'Cannot convert `undefined` with r.expr()'
 
   if isConstructor(expr, Number) and not isFinite expr
@@ -330,7 +330,7 @@ statics._args = (args) ->
         values.push arg
         return
 
-      if arg._type is 'ARGS'
+      if arg._type == 'ARGS'
         values = values.concat arg._run()
         return
 
@@ -359,7 +359,7 @@ module.exports = Query
 #
 
 plural = (noun, count) ->
-  return '1 ' + noun if count is 1
+  return '1 ' + noun if count == 1
   return count + ' ' + noun + 's'
 
 runOnce = (arg) ->
@@ -368,7 +368,7 @@ runOnce = (arg) ->
   else Query._expr arg
 
 isFalse = (value) ->
-  (value is null) or (value is false)
+  (value == null) or (value == false)
 
 isArrayOrObject = (value) ->
   isArray(value) or isConstructor(value, Object)

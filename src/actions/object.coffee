@@ -28,22 +28,22 @@ actions = exports
 actions.bracket = (result, key) ->
   type = utils.typeOf key
 
-  if type is 'NUMBER'
+  if type == 'NUMBER'
 
     if key < -1 and seqRE.test @type
       throw Error 'Cannot use an index < -1 on a stream'
 
     return seq.nth result, key
 
-  if type isnt 'STRING'
+  if type != 'STRING'
     throw Error "Expected NUMBER or STRING as second argument to `bracket` but found #{type}"
 
   type = utils.typeOf result
 
-  if type is 'ARRAY'
+  if type == 'ARRAY'
     return seq.getField result, key
 
-  if type is 'OBJECT'
+  if type == 'OBJECT'
     return utils.getField result, key
 
   throw Error "Expected ARRAY or OBJECT as first argument to `bracket` but found #{type}"
@@ -53,10 +53,10 @@ actions.getField = (result, attr) ->
 
   type = utils.typeOf result
 
-  if type is 'ARRAY'
+  if type == 'ARRAY'
     return seq.getField result, attr
 
-  if type is 'OBJECT'
+  if type == 'OBJECT'
     return utils.getField result, attr
 
   throw Error "Expected ARRAY or OBJECT but found #{type}"
@@ -70,10 +70,10 @@ actions.hasFields = (result, attrs) ->
 
   type = utils.typeOf result
 
-  if type is 'ARRAY'
+  if type == 'ARRAY'
     return seq.hasFields result, attrs
 
-  if type is 'OBJECT'
+  if type == 'OBJECT'
     return utils.hasFields result, attrs
 
   throw Error "Expected ARRAY or OBJECT but found #{type}"
@@ -81,12 +81,12 @@ actions.hasFields = (result, attrs) ->
 actions.merge = (result, args) ->
   type = utils.typeOf result
 
-  if type is 'ARRAY'
+  if type == 'ARRAY'
     return result.map (row) ->
       utils.expect row, 'OBJECT'
       mergeObjects row, args
 
-  if type is 'OBJECT'
+  if type == 'OBJECT'
     return mergeObjects result, args
 
   throw Error "Expected ARRAY or OBJECT but found #{type}"
@@ -94,10 +94,10 @@ actions.merge = (result, args) ->
 actions.pluck = (result, args) ->
   type = utils.typeOf result
 
-  if type is 'ARRAY'
+  if type == 'ARRAY'
     return seq.pluck result, args
 
-  if type is 'OBJECT'
+  if type == 'OBJECT'
     return utils.pluck result, args
 
   throw Error "Expected ARRAY or OBJECT but found #{type}"
@@ -106,10 +106,10 @@ actions.without = (result, args) ->
   args = utils.flatten args
   type = utils.typeOf result
 
-  if type is 'ARRAY'
+  if type == 'ARRAY'
     return seq.without result, args
 
-  if type is 'OBJECT'
+  if type == 'OBJECT'
     return utils.without result, args
 
   throw Error "Expected ARRAY or OBJECT but found #{type}"

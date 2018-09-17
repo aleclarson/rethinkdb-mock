@@ -29,13 +29,13 @@ actions = exports
 
 actions.get = (table, rowId) ->
 
-  if rowId is undefined
+  if rowId == undefined
     throw Error 'Argument 1 to get may not be `undefined`'
 
   if utils.isQuery rowId
     rowId = rowId._run()
 
-  if (rowId is null) or isConstructor(rowId, Object)
+  if (rowId == null) or isConstructor(rowId, Object)
     throw Error 'Primary keys must be either a number, string, bool, pseudotype or array'
 
   @rowId = rowId
@@ -43,7 +43,7 @@ actions.get = (table, rowId) ->
 
   index = -1
   while ++index < table.length
-    if table[index].id is rowId
+    if table[index].id == rowId
       @rowIndex = index
       return table[index]
 
@@ -60,17 +60,17 @@ actions.getAll = (table, args) ->
 
   args.forEach (arg, index) ->
 
-    if arg is null
+    if arg == null
       throw Error 'Keys cannot be NULL'
 
     if isConstructor arg, Object
-      throw Error (if key is 'id' then 'Primary' else 'Secondary') + ' keys must be either a number, string, bool, pseudotype or array'
+      throw Error (if key == 'id' then 'Primary' else 'Secondary') + ' keys must be either a number, string, bool, pseudotype or array'
 
   table.filter (row) ->
     for arg in args
       if isArray arg
         return true if utils.equals arg, row[key]
-      else if arg is row[key]
+      else if arg == row[key]
         return true
     return false
 
@@ -119,9 +119,9 @@ actions.replace = (rows, values) ->
     throw Error "Expected type SELECTION but found #{@type}"
 
   table = @db._tables[@tableId]
-  if values is null
+  if values == null
 
-    if rows is null
+    if rows == null
       return {deleted: 0, skipped: 1}
 
     if isArray rows
@@ -130,7 +130,7 @@ actions.replace = (rows, values) ->
     table.splice @rowIndex, 1
     return {deleted: 1, skipped: 0}
 
-  else if rows is null
+  else if rows == null
     table.push values
     return {inserted: 1}
 
@@ -145,13 +145,13 @@ actions.replace = (rows, values) ->
   for row in rows
     values = query._run {row} if query
 
-    if 'OBJECT' isnt utils.typeOf values
+    if 'OBJECT' != utils.typeOf values
       throw Error "Inserted value must be an OBJECT (got #{utils.typeOf values})"
 
     unless values.hasOwnProperty 'id'
       throw Error 'Inserted object must have primary key `id`'
 
-    if values.id isnt row.id
+    if values.id != row.id
       res.errors += 1
       res.first_error ?= 'Primary key `id` cannot be changed'
 
@@ -175,16 +175,16 @@ actions.delete = (result) ->
 
 findRow = (table, rowId) ->
 
-  if rowId is undefined
+  if rowId == undefined
     throw Error 'Argument 1 to get may not be `undefined`'
 
   if utils.isQuery rowId
     rowId = rowId._run()
 
-  if (rowId is null) or isConstructor(rowId, Object)
+  if (rowId == null) or isConstructor(rowId, Object)
     throw Error 'Primary keys must be either a number, string, bool, pseudotype or array'
 
-  table.find (row) -> row.id is rowId
+  table.find (row) -> row.id == rowId
 
 updateRows = (rows, patch) ->
 
@@ -194,7 +194,7 @@ updateRows = (rows, patch) ->
   unless rows.length
     return {replaced: 0, unchanged: 0}
 
-  if patch is null
+  if patch == null
     return {replaced: 0, unchanged: rows.length}
 
   if utils.isQuery patch
@@ -218,10 +218,10 @@ updateRows = (rows, patch) ->
 
 updateRow = (row, patch) ->
 
-  if @type isnt 'SELECTION'
+  if @type != 'SELECTION'
     throw Error "Expected type SELECTION but found #{@type}"
 
-  if row is null
+  if row == null
     return {replaced: 0, skipped: 1}
 
   if utils.isQuery patch
@@ -235,12 +235,12 @@ updateRow = (row, patch) ->
 
 deleteRows = (rows) ->
 
-  if @type is 'TABLE'
+  if @type == 'TABLE'
     deleted = rows.length
     rows.length = 0
     return {deleted}
 
-  if @type isnt 'SELECTION<ARRAY>'
+  if @type != 'SELECTION<ARRAY>'
     throw Error "Expected type SELECTION but found #{@type}"
 
   unless rows.length
@@ -258,10 +258,10 @@ deleteRows = (rows) ->
 
 deleteRow = (row) ->
 
-  if row is null
+  if row == null
     return {deleted: 0, skipped: 1}
 
-  if @type isnt 'SELECTION'
+  if @type != 'SELECTION'
     throw Error "Expected type SELECTION but found #{@type}"
 
   table = @db._tables[@tableId]

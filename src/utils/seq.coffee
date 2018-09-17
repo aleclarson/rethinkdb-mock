@@ -50,10 +50,10 @@ seq.slice = (array, args) ->
   utils.expect startIndex, 'NUMBER'
   utils.expect endIndex, 'NUMBER'
 
-  if options.leftBound is 'open'
+  if options.leftBound == 'open'
     startIndex += 1
 
-  if options.rightBound is 'closed'
+  if options.rightBound == 'closed'
     endIndex += 1
 
   return array.slice startIndex, endIndex

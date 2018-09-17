@@ -42,7 +42,7 @@ methods.load = ->
   return
 
 methods.table = (tableId) ->
-  if tableId is undefined
+  if tableId == undefined
     throw Error 'Cannot convert `undefined` with r.expr()'
   return Table this, tableId
 
@@ -71,7 +71,7 @@ methods.tableDrop = (tableId) ->
 methods.uuid = require './utils/uuid'
 
 methods.typeOf = (value) ->
-  if arguments.length isnt 1
+  if arguments.length != 1
     throw Error "`typeOf` takes 1 argument, #{arguments.length} provided"
   return Query._expr(value).typeOf()
 
@@ -110,7 +110,7 @@ methods.args = (args) ->
     values = []
     args.forEach (arg) ->
 
-      if arg._type is 'ARGS'
+      if arg._type == 'ARGS'
         values = values.concat arg._run()
         return
 
@@ -128,7 +128,7 @@ methods.object = ->
     throw Error 'Expected an even number of arguments'
 
   args.forEach (arg, index) ->
-    if arg is undefined
+    if arg == undefined
       throw Error "Argument #{index} to object may not be `undefined`"
 
   query = Query null, 'DATUM'
